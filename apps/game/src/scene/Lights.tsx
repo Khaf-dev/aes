@@ -8,6 +8,7 @@ import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { useGame } from "../state/store.ts";
 import { exposureFromSlider, LAMP_AIM, LAMP_POS } from "./shared.ts";
+import { BENCH_LAMP } from "./Workshop.tsx";
 
 // 280 lm = output maksimum headlamp kerja (sumber: aio.lv, lembar produk GP Discovery CHW53).
 // Sudut sorot dan tinggi dahi = placeholder, belum bersumber (dicatat di GDD).
@@ -34,11 +35,12 @@ function objectAt(p: THREE.Vector3) {
 }
 
 export function Lights() {
-  const { lampLm, ambientLux, exposure, shadows, headlamp } = useGame((s) => s.lights);
+  const { lampLm, benchLm, ambientLux, exposure, shadows, headlamp } = useGame((s) => s.lights);
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   const camera = useThree((s) => s.camera);
   const lampTarget = useMemo(() => objectAt(LAMP_AIM), []);
+  const benchTarget = useMemo(() => objectAt(BENCH_LAMP.aim), []);
   const headTarget = useMemo(() => objectAt(new THREE.Vector3(0, 0, -1)), []);
 
   // Lampu yang menempel di kamera hanya ikut dihitung kalau kamera ada di scene graph
@@ -67,6 +69,13 @@ export function Lights() {
         angle={0.62} penumbra={0.55} decay={2} distance={0}
         castShadow={shadows} shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004} shadow-normalBias={0.02}
         shadow-camera-near={0.3} shadow-camera-far={14}
+      />
+      {/* Lampu kerja kedua di dinding: menyorot meja kerja dan shadow board */}
+      <primitive object={benchTarget} />
+      <spotLight
+        position={BENCH_LAMP.pos} target={benchTarget} color={0xfff1dc} power={benchLm}
+        angle={0.95} penumbra={0.6} decay={2} distance={0}
+        castShadow={shadows} shadow-mapSize={[1024, 1024]} shadow-bias={-0.0004} shadow-normalBias={0.02}
       />
       <directionalLight position={[6, 5, -3]} color={0x9fb4e0} intensity={ambientLux} />
       <hemisphereLight args={[0x9fb4e0, 0x1a1712]} intensity={ambientLux * 0.6} />

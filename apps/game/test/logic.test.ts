@@ -89,7 +89,10 @@ describe("jembatan ke sim-core", () => {
   });
 
   it("part di meja = langkah belum dikerjakan; mur tanpa torsi = under-torque per mur", () => {
-    expect(hiddenDefects(initialRakit())).toMatchObject([{ stepId: "74-10-01", kind: "missing" }]);
+    expect(hiddenDefects(initialRakit())).toMatchObject([
+      { stepId: "74-10-01", kind: "missing" },
+      { stepId: "80-10-01", kind: "missing" },
+    ]);
     let s = install(pickUp(initialRakit(), MAG).state, MAG).state;
     s = installNut(installNut(s, MAG, 0).state, MAG, 1).state;
     s = torqueNut(s, MAG, 0, 60, { setting: 60, feel: "klik" });
@@ -97,7 +100,7 @@ describe("jembatan ke sim-core", () => {
       { kind: "install", partId: "ign.magneto.left" },
       { kind: "torque", value: 60, fastener: 1 },
     ]);
-    const torqueDefects = hiddenDefects(s).filter((d) => d.kind === "underTorque");
+    const torqueDefects = hiddenDefects(s).filter((d) => d.stepId === "74-10-01" && d.kind === "underTorque");
     expect(torqueDefects.map((d) => d.detail)).toEqual(["Mur #2: Torsi tidak diterapkan"]);
   });
 });

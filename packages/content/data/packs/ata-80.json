@@ -1,0 +1,19 @@
+{
+  "parts": [
+    { "id": "ele.starter", "name": "Motor starter", "ataChapter": 80, "tier": 2 }
+  ],
+  "steps": [
+    {
+      "id": "80-10-01",
+      "title": "Pasang motor starter",
+      "partId": "ele.starter",
+      "requires": [],
+      "actions": [
+        { "kind": "inspect" },
+        { "kind": "install" },
+        { "kind": "torque", "unit": "in-lb", "range": null, "source": null, "fasteners": 2 },
+        { "kind": "inspect" }
+      ]
+    }
+  ]
+}

@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { PAD_FACE_X, PARTS } from "../data/parts.ts";
 import { nutLabel, useGame } from "../state/store.ts";
-import { ENGINE_POS, M, nutKey, rig, solid, V } from "./shared.ts";
+import { ENGINE_POS, INTERIOR, M, NO_RAYCAST, nutKey, rig, solid, V, XRAY_LINE } from "./shared.ts";
 
 const finGeo = new THREE.CylinderGeometry(0.13, 0.13, 0.006, 28);
 const barrelGeo = new THREE.CylinderGeometry(0.095, 0.095, 0.24, 24);
@@ -13,13 +13,51 @@ const nutGeo = new THREE.CylinderGeometry(0.009, 0.009, 0.008, 6);
 
 const decor = (code: string, name: string) => ({ pick: { kind: "decor", code, name } });
 
-function Block({ size, position, code, name, material = M.castAlu }: {
-  size: [number, number, number]; position: [number, number, number]; code: string; name: string; material?: THREE.Material;
-}) {
+/**
+ * Kulit mesin: bisa dibuka lensa x-ray (materialnya di-patch di shared.ts), punya dinding dalam
+ * gaya cutaway, dan dihitung sebagai benda padat untuk kamera.
+ */
+function Shell({ geometry, material, code, name, ...rest }: {
+  geometry: THREE.BufferGeometry; material: THREE.Material; code: string; name: string;
+} & Omit<React.ComponentProps<"mesh">, "geometry" | "material">) {
   return (
-    <mesh ref={solid} position={position} material={material} castShadow receiveShadow userData={decor(code, name)}>
-      <boxGeometry args={size} />
+    <mesh ref={solid} geometry={geometry} material={material} castShadow receiveShadow userData={decor(code, name)} {...rest}>
+      <mesh geometry={geometry} material={INTERIOR} />
     </mesh>
+  );
+}
+
+function Block({ size, position, code, name }: { size: [number, number, number]; position: [number, number, number]; code: string; name: string }) {
+  const [w, h, d] = size;
+  const geometry = useMemo(() => new THREE.BoxGeometry(w, h, d), [w, h, d]);
+  return <Shell geometry={geometry} material={M.castAlu} position={position} code={code} name={name} />;
+}
+const headGeo = new THREE.BoxGeometry(0.2, 0.1, 0.17);
+
+/** Bagian dalam: tertutup kulit mesin, hanya terlihat dan bisa dipilih lewat lensa x-ray. */
+const INTERNALS: { geometry: THREE.BufferGeometry; position: [number, number, number]; rotZ: number; code: string; name: string }[] = [
+  { geometry: new THREE.CylinderGeometry(0.03, 0.03, 0.78, 16), position: [0, 0, 0], rotZ: Math.PI / 2, code: "ATA 85", name: "Crankshaft" },
+  ...([[0.44, 0.06, 0.07, "Gear penggerak aksesori"], [0.44, -0.06, 0.045, "Gear pompa oli"], [0.4, 0.1, 0.035, "Gear penggerak magneto"]] as const)
+    .map(([x, y, r, name]) => ({
+      geometry: new THREE.CylinderGeometry(r, r, 0.02, 20), position: [x, y, 0.05] as [number, number, number], rotZ: Math.PI / 2,
+      code: name.includes("magneto") ? "ATA 74" : "ATA 72", name,
+    })),
+  ...[-0.17, 0.17].map((x) => ({
+    geometry: new THREE.BoxGeometry(0.03, 0.03, 0.34), position: [x, 0.02, 0] as [number, number, number], rotZ: 0, code: "ATA 85", name: "Batang penghubung",
+  })),
+];
+const internalEdges = INTERNALS.map((i) => new THREE.EdgesGeometry(i.geometry, 25));
+
+function Internals() {
+  return (
+    <>
+      {INTERNALS.map((i, n) => (
+        <group key={n} position={i.position} rotation-z={i.rotZ}>
+          <mesh geometry={i.geometry} material={M.steel} castShadow userData={{ pick: { kind: "internal", code: i.code, name: i.name } }} />
+          <lineSegments geometry={internalEdges[n]} material={XRAY_LINE} raycast={NO_RAYCAST} />
+        </group>
+      ))}
+    </>
   );
 }
 
@@ -28,13 +66,11 @@ function Cylinders() {
     <>
       {[-0.17, 0.17].flatMap((x) => [1, -1].map((side) => (
         <group key={`${x}${side}`} position={[x + (side > 0 ? 0.04 : -0.04), 0.02, side * 0.21]} rotation-x={Math.PI / 2}>
-          <mesh ref={solid} geometry={barrelGeo} material={M.cylinder} position-y={side * 0.12} castShadow receiveShadow userData={decor("ATA 85", "Silinder")} />
+          <Shell geometry={barrelGeo} material={M.cylinder} position-y={side * 0.12} code="ATA 85" name="Silinder" />
           {Array.from({ length: 9 }, (_, i) => (
             <mesh key={i} geometry={finGeo} material={M.cylinder} position-y={side * (0.03 + i * 0.022)} castShadow receiveShadow />
           ))}
-          <mesh ref={solid} material={M.head} position-y={side * 0.29} castShadow receiveShadow userData={decor("ATA 85", "Kepala silinder")}>
-            <boxGeometry args={[0.2, 0.1, 0.17]} />
-          </mesh>
+          <Shell geometry={headGeo} material={M.head} position-y={side * 0.29} code="ATA 85" name="Kepala silinder" />
         </group>
       )))}
     </>
@@ -114,6 +150,7 @@ export function Engine({ children }: { children?: React.ReactNode }) {
       <Block size={[0.6, 0.12, 0.34]} position={[0.02, -0.21, 0]} code="ATA 79" name="Bak oli (sump)" />
       <Block size={[0.12, 0.3, 0.34]} position={[0.44, 0.02, 0]} code="ATA 72" name="Gearbox aksesori" />
       <Cylinders />
+      <Internals />
       <Propeller />
       <Exhaust />
       <Mounts />

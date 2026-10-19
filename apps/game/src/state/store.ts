@@ -11,6 +11,8 @@ export interface NutRef {
 export interface Lights {
   /** Lampu kerja tripod (lumen). */
   readonly lampLm: number;
+  /** Lampu meja kerja di dinding (lumen). */
+  readonly benchLm: number;
   /** Cahaya lingkungan dari luar pintu hanggar (lux). */
   readonly ambientLux: number;
   /** Posisi slider eksposur 0–1. */
@@ -30,6 +32,11 @@ interface GameState {
   /** Part yang terakhir disentuh: strip task card mengikuti part ini. */
   readonly focusPart: string;
   readonly torqueMode: boolean;
+  /** Lensa x-ray aktif, dan apakah kursor sedang di atas mesin (hanya di situ kulit mesin dibuka). */
+  readonly lensOn: boolean;
+  readonly lensOverEngine: boolean;
+  /** Kamera berputar otomatis 360°. */
+  readonly spin: boolean;
   /** Setelan thimble kunci torsi (in-lb). */
   readonly setting: number;
   /** Mur tempat kunci torsi sedang terpasang. */
@@ -49,6 +56,8 @@ interface GameState {
   clickStud(nut: NutRef): void;
   clickNut(nut: NutRef): void;
   setTorqueMode(on: boolean): void;
+  setLens(on: boolean): void;
+  setSpin(on: boolean): void;
   aimWrench(nut: NutRef): void;
   stepSetting(delta: number): void;
   openCloseup(nut: NutRef): void;
@@ -73,12 +82,15 @@ export const useGame = create<GameState>()((set, get) => {
     rakit: rakit.initialRakit(),
     focusPart: PARTS[0]!.assetId,
     torqueMode: false,
+    lensOn: false,
+    lensOverEngine: false,
+    spin: false,
     setting: WRENCH_MIN,
     wrenchAt: null,
     closeup: null,
     closeupStatus: "",
     pulling: false,
-    lights: { lampLm: 4000, ambientLux: 0.5, exposure: 0.6, shadows: true, headlamp: true },
+    lights: { lampLm: 4000, benchLm: 1200, ambientLux: 0.5, exposure: 0.6, shadows: true, headlamp: true },
     toast: null,
     hover: null,
 
@@ -91,8 +103,10 @@ export const useGame = create<GameState>()((set, get) => {
     setTorqueMode: (on) => {
       const first = on ? firstInstalledNut(get().rakit) : null;
       set({ torqueMode: on, wrenchAt: first });
-      if (on && !first) get().showToast("Belum ada mur terpasang untuk dikencangkan. Kunci torsi tetap di meja part.");
+      if (on && !first) get().showToast("Belum ada mur terpasang untuk dikencangkan. Kunci torsi tetap di shadow board.");
     },
+    setLens: (lensOn) => set({ lensOn, lensOverEngine: false, hover: null }),
+    setSpin: (spin) => set({ spin }),
     aimWrench: (nut) => set({ wrenchAt: nut }),
     stepSetting: (delta) => set({ setting: clampSetting(get().setting + delta) }),
 

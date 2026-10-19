@@ -327,8 +327,8 @@ Belum dikerjakan, dibahas dulu sebelum digarap.
 | Kamera close-up tanpa cek tabrakan | Posisi kamera close-up secara fisik berada di dalam pelat firewall; tidak terlihat karena hanya layer close-up yang dirender |
 | Model kunci torsi masih 61 draw call | CadQuery mengekspor satu primitive per face. Gabungkan per material di pipeline |
 | Dimensi kunci torsi belum terverifikasi | Dari katalog distributor, `verified: false`. Perlu dicek ke sumber kedua |
-| Jumlah mur pengikat magneto belum bersumber | `fasteners: 2` di langkah 74-10-01 diambil dari model magneto (dua telinga flange), bukan dari dokumen teknis |
-| Port prototipe irisan kedua | Lensa x-ray, tag inspeksi, shadow board, meja kerja + task card fisik, papan tulis, starter, putar otomatis kamera belum dipindah ke `apps/game` |
+| Jumlah mur pengikat magneto dan starter belum bersumber | `fasteners: 2` di langkah 74-10-01 dan 80-10-01 diambil dari model hasil pipeline (dua telinga flange), bukan dari dokumen teknis |
+| Langkah starter belum terhubung ke kabel starter | 80-10-01 (pasang starter) belum jadi prasyarat 24-30-04 (sambung kabel starter). Urutan antarbab perlu dirujuk dulu |
 | Bundel JS game 1,4 MB | Belum dipecah (code splitting); termasuk three.js, drei, dan Zod untuk validasi konten saat jalan |
 | Part Tier 2 alternator dan karburator | Gambar input sudah ada di `assets-src`, tinggal generate mesh di TRELLIS.2 saat kuota GPU tersedia |
 

@@ -2,22 +2,7 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import { useGame } from "../state/store.ts";
-import { LAMP_AIM, LAMP_POS, M, PART_TABLE, ROOM, solid, UP, V } from "./shared.ts";
-
-function canvasTexture(w: number, h: number, draw: (g: CanvasRenderingContext2D) => void, color = true, repeat?: [number, number]) {
-  const c = document.createElement("canvas");
-  c.width = w; c.height = h;
-  draw(c.getContext("2d")!);
-  const t = new THREE.CanvasTexture(c);
-  if (color) t.colorSpace = THREE.SRGBColorSpace;
-  t.anisotropy = 8;
-  if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...repeat); }
-  return t;
-}
-function rand(seed: number) {
-  let s = seed >>> 0;
-  return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296;
-}
+import { canvasTexture, LAMP_AIM, LAMP_POS, M, PART_TABLE, rand, ROOM, solid, UP, V } from "./shared.ts";
 
 export function Rod({ a, b, r, material }: { a: THREE.Vector3; b: THREE.Vector3; r: number; material: THREE.Material }) {
   const { pos, quat, len } = useMemo(() => {

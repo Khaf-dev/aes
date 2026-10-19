@@ -47,6 +47,22 @@ export const PARTS: readonly PartDef[] = [
       ["TC 74-10-01 · LANGKAH 4 / 6", "Pasang safety wire, lalu sign-off task card"],
     ],
   },
+  {
+    assetId: "acc.starter.mk1",
+    contentId: "ele.starter",
+    stepId: "80-10-01",
+    name: "Motor starter",
+    label: "starter",
+    pad: { code: "80-10-01", name: "Pad starter · titik pasang", y: -0.06, z: -0.075, studs: [-0.05, 0.05], nutX: 0.022 },
+    rest: [0.5, 0.8],
+    yaw: -0.25,
+    stages: [
+      ["TC 80-10-01 · LANGKAH 1 / 4", "Pasang starter ke pad"],
+      ["TC 80-10-01 · LANGKAH 2 / 4", "Pasang ring & mur di stud (klik stud)"],
+      ["TC 80-10-01 · LANGKAH 3 / 4", "Kencangkan mur pengikat (T: kunci torsi)"],
+      ["TC 80-10-01 · LANGKAH 4 / 4", "Sambungkan kabel starter, lalu sign-off"],
+    ],
+  },
 ];
 
 export const partDef = (assetId: string): PartDef => {

@@ -10,16 +10,18 @@ pnpm --filter @aes/game build      # build produksi ke dist/
 
 Tambahkan `?debug` di URL untuk kait uji otomatis (`window.__aes`).
 
-## Isi irisan pertama (mode rakit, magneto kiri)
+## Isi mode rakit
 
 - Hanggar malam dengan lampu satuan fisik (lumen, lux, decay 2) dan headlamp mekanik di kamera.
 - Kamera orbit berbatas ruangan, tidak menembus benda padat.
-- Ambil magneto dari meja part, pasang ke pad lewat bayangan pemasangan, pasang ring & mur di stud.
+- Ambil magneto atau starter dari meja part, pasang ke pad lewat bayangan pemasangan (pad lain menolak), pasang ring & mur di stud.
 - Mode kunci torsi (T) dan close-up hybrid: kunci 3D dari asset pipeline + skala mikrometer di kaca pembesar.
+- Lensa x-ray (X): kulit mesin terbuka di lingkaran kursor, hanya komponen dalam yang bisa dipilih.
+- Area kerja: meja kerja + task card, shadow board (kunci torsi tergantung di slotnya), papan tulis, troli, APAR,
+  lampu meja; tag inspeksi gantung; putar otomatis kamera (P).
 - Keadaan rakitan diterjemahkan ke `AssemblyLog` sim-core (torsi per mur), defect tersembunyi sampai tes.
 
-Belum diporting dari prototipe (irisan berikutnya): lensa x-ray, tag inspeksi, shadow board,
-meja kerja + task card fisik, papan tulis, starter, putar otomatis kamera.
+Semua fitur prototipe artifact "AES Mode Rakit" sudah dipindah ke sini.
 
 ## Struktur
 

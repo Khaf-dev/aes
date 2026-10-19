@@ -16,6 +16,8 @@ function judge(o: THREE.Object3D): Pick | "skip" | "block" {
   const g = useGame.getState();
   if (g.closeup) return "block";
   const pick = pickOf(o);
+  // Lensa x-ray: hanya komponen dalam mesin yang bisa dipilih, kulit mesin ditembus
+  if (g.lensOn) return pick?.kind === "internal" && g.lensOverEngine ? pick : "skip";
   // Mode torsi: part dan kunci tidak menutupi mur kecil di telinga flange
   if (g.torqueMode && !g.rakit.held && (pick?.kind === "part" || pick?.kind === "tool")) return "skip";
   return pick ?? "block";
@@ -23,6 +25,7 @@ function judge(o: THREE.Object3D): Pick | "skip" | "block" {
 
 function act(pick: Pick) {
   const g = useGame.getState();
+  if (g.lensOn) return; // lensa hanya untuk melihat
   if (g.torqueMode && !g.rakit.held) {
     if (pick.kind === "nut") g.openCloseup({ part: pick.part, index: pick.index });
     return;

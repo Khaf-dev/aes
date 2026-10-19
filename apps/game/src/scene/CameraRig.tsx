@@ -28,6 +28,7 @@ export function CameraRig() {
   const controls = useRef<Orbit>(null);
   const closeup = useGame((s) => s.closeup);
   const torqueMode = useGame((s) => s.torqueMode);
+  const spin = useGame((s) => s.spin);
   const boxes = useRef<THREE.Box3[]>([]);
   const frame = useRef(0);
   const tmp = useMemo(() => ({ ray: new THREE.Ray(), dir: new THREE.Vector3(), hit: new THREE.Vector3() }), []);
@@ -80,7 +81,7 @@ export function CameraRig() {
 
   return (
     <OrbitControls
-      ref={controls as never} makeDefault enabled={!closeup} enableDamping
+      ref={controls as never} makeDefault enabled={!closeup} enableDamping autoRotate={spin && !closeup} autoRotateSpeed={0.9}
       minDistance={0.35} maxDistance={6.5} minPolarAngle={0.05} maxPolarAngle={Math.PI * 0.94}
     />
   );

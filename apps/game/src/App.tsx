@@ -8,6 +8,9 @@ import { CameraRig, cameraApi, HOME_POS } from "./scene/CameraRig.tsx";
 import { Engine } from "./scene/Engine.tsx";
 import { Hangar } from "./scene/Hangar.tsx";
 import { Interact } from "./scene/Interact.tsx";
+import { Lens } from "./scene/Lens.tsx";
+import { Tags } from "./scene/Tags.tsx";
+import { Workshop } from "./scene/Workshop.tsx";
 import { Lights } from "./scene/Lights.tsx";
 import { rig, runTweens } from "./scene/shared.ts";
 import { Tier2Part } from "./scene/Tier2Part.tsx";
@@ -42,6 +45,8 @@ function useKeyboard() {
       }
       if (e.key === "Escape") g.putBack();
       else if (k === "t") g.setTorqueMode(!g.torqueMode);
+      else if (k === "x") g.setLens(!g.lensOn);
+      else if (k === "p") g.setSpin(!g.spin);
       else if (k === "r") cameraApi.reset();
     };
     const up = (e: KeyboardEvent) => { if (e.code === "Space") releasePull(); };
@@ -69,7 +74,7 @@ export function App() {
   useKeyboard();
   return (
     <>
-      <div id="stage" aria-label="Scene 3D hanggar: mesin piston di atas dudukan, meja part, dan lampu kerja">
+      <div id="stage" aria-label="Scene 3D hanggar: mesin piston di atas dudukan, meja part, meja kerja, papan peralatan, dan papan tulis">
         <Canvas
           shadows="percentage" dpr={[1, 1.75]}
           camera={{ fov: 42, near: 0.03, far: 80, position: HOME_POS.toArray() }}
@@ -78,6 +83,8 @@ export function App() {
           <Lights />
           <Interact>
             <Hangar />
+            <Workshop />
+            <Tags />
             <Engine />
             <group ref={(g) => { rig.staging = g; }} />
           </Interact>
@@ -86,6 +93,7 @@ export function App() {
             <TorqueRig />
           </Suspense>
           <CameraRig />
+          <Lens />
           <Tweens />
           {DEBUG && <DebugHook />}
         </Canvas>

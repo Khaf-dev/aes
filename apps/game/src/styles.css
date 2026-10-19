@@ -98,6 +98,18 @@
   .label b { font-size: 11px; letter-spacing: 0.06em; }
 
 
+  .lens {
+    position: fixed; pointer-events: none; border-radius: 50%;
+    border: 1.5px dashed var(--xray); box-shadow: 0 0 24px rgba(92, 200, 215, 0.25), inset 0 0 18px rgba(92, 200, 215, 0.18);
+    transform: translate(-50%, -50%);
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .lens.idle { border-color: rgba(185, 178, 163, 0.5); box-shadow: none; }
+  .lens span {
+    margin-bottom: -28px; font-size: 12px; color: #B9B2A3; background: rgba(8, 11, 17, 0.7);
+    padding: 2px 8px; border-radius: 4px; white-space: nowrap;
+  }
+
   /* Catatan singkat dari sistem, gaya kertas tempel */
   .toast {
     position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 22px);

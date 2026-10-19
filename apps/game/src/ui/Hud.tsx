@@ -4,7 +4,7 @@ import { PARTS, partDef } from "../data/parts.ts";
 import { WRENCH_MAX, WRENCH_MIN } from "../logic/clickWrench.ts";
 import { stage } from "../logic/rakit.ts";
 import { cameraApi } from "../scene/CameraRig.tsx";
-import { exposureFromSlider } from "../scene/shared.ts";
+import { exposureFromSlider, LENS_RADIUS } from "../scene/shared.ts";
 import { useGame } from "../state/store.ts";
 
 const fmt = (n: number, d = 0) => n.toLocaleString("id-ID", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -40,21 +40,32 @@ function Toast() {
 function Hint() {
   const held = useGame((s) => s.rakit.held);
   const torqueMode = useGame((s) => s.torqueMode);
-  const text = held
+  const lensOn = useGame((s) => s.lensOn);
+  const text = lensOn
+    ? "Arahkan lensa ke mesin untuk melihat bagian dalam · X: tutup lensa"
+    : held
     ? `Klik pad yang menyala untuk memasang ${partDef(held).name.toLowerCase()} · Esc: taruh kembali`
     : torqueMode
-      ? "Arahkan ke mur · Scroll: setel dial · Klik mur: buka close-up kunci torsi · T: kembalikan kunci"
+      ? "Arahkan ke mur · Scroll: setel dial · Klik mur: buka close-up kunci torsi · T: kembalikan ke shadow board"
       : "Klik part di meja untuk mengambil · Klik stud: pasang mur · Klik mur: lepas mur · Drag: putar kamera";
   return <p className="hint">{text}</p>;
 }
 
 function Toolbar() {
   const torqueMode = useGame((s) => s.torqueMode);
+  const lensOn = useGame((s) => s.lensOn);
+  const spin = useGame((s) => s.spin);
   const held = useGame((s) => s.rakit.held);
   return (
     <div className="bar" role="toolbar" aria-label="Kontrol mode rakit">
+      <button type="button" aria-pressed={lensOn} onClick={() => useGame.getState().setLens(!lensOn)}>
+        <kbd>X</kbd>Lensa x-ray
+      </button>
       <button type="button" aria-pressed={torqueMode} onClick={() => useGame.getState().setTorqueMode(!torqueMode)}>
         <kbd>T</kbd>Kunci torsi
+      </button>
+      <button type="button" aria-pressed={spin} onClick={() => useGame.getState().setSpin(!spin)}>
+        <kbd>P</kbd>Putar otomatis 360°
       </button>
       <button type="button" onClick={() => cameraApi.reset()}><kbd>R</kbd>Reset kamera</button>
       {held && <button type="button" onClick={() => useGame.getState().putBack()}><kbd>Esc</kbd>Taruh kembali</button>}
@@ -77,6 +88,25 @@ function HoverLabel() {
     <div className="label" ref={ref} hidden={!hover}>
       <b>{hover?.code}</b>
       <span>{hover?.name}</span>
+    </div>
+  );
+}
+
+/** Lingkaran lensa x-ray mengikuti kursor; redup bila kursor tidak di atas mesin. */
+function LensCursor() {
+  const lensOn = useGame((s) => s.lensOn);
+  const over = useGame((s) => s.lensOverEngine);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const move = (e: PointerEvent) => {
+      if (ref.current) { ref.current.style.left = `${e.clientX}px`; ref.current.style.top = `${e.clientY}px`; }
+    };
+    window.addEventListener("pointermove", move);
+    return () => window.removeEventListener("pointermove", move);
+  }, []);
+  return (
+    <div ref={ref} className={`lens${over ? "" : " idle"}`} hidden={!lensOn} style={{ width: LENS_RADIUS * 2, height: LENS_RADIUS * 2 }}>
+      <span hidden={over}>Arahkan ke mesin</span>
     </div>
   );
 }
@@ -116,6 +146,10 @@ function LabPanel() {
           <input type="range" min={500} max={12000} step={250} value={lights.lampLm} onChange={(e) => set({ lampLm: Number(e.target.value) })} />
         </label>
         <label>
+          <span className="head"><span>Lampu meja kerja</span><output>{fmt(lights.benchLm)} lm</output></span>
+          <input type="range" min={0} max={4000} step={100} value={lights.benchLm} onChange={(e) => set({ benchLm: Number(e.target.value) })} />
+        </label>
+        <label>
           <span>Cahaya lingkungan</span>
           <select value={lights.ambientLux} onChange={(e) => set({ ambientLux: Number(e.target.value) })}>
             <option value={0.0001}>Malam tanpa bulan · 0,0001 lx</option>
@@ -149,6 +183,7 @@ export function Hud() {
       <Toolbar />
       <Hint />
       <HoverLabel />
+      <LensCursor />
     </>
   );
 }

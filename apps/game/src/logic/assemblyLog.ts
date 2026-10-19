@@ -4,15 +4,19 @@
  */
 import { validateContentPack } from "@aes/content";
 import ata74 from "@aes/content/data/packs/ata-74.json";
+import ata80 from "@aes/content/data/packs/ata-80.json";
 import { detectDefects, type AssemblyLog, type Defect, type PerformedAction, type StepRecord, type StepSpec } from "@aes/sim-core";
 import { PARTS, type PartDef } from "../data/parts.ts";
 import type { RakitState } from "./rakit.ts";
 
-const pack = validateContentPack(ata74);
-if (!pack.ok) throw new Error(`Paket konten ATA 74 tidak valid:\n${pack.errors.join("\n")}`);
+const packs = [ata74, ata80].map((data) => {
+  const pack = validateContentPack(data);
+  if (!pack.ok) throw new Error(`Paket konten tidak valid:\n${pack.errors.join("\n")}`);
+  return pack.value;
+});
 
 /** Langkah perakitan dari data konten untuk part yang ada di mode rakit. */
-export const STEPS: readonly StepSpec[] = pack.value.steps.filter((s) => PARTS.some((p) => p.stepId === s.id));
+export const STEPS: readonly StepSpec[] = packs.flatMap((p) => p.steps).filter((s) => PARTS.some((p) => p.stepId === s.id));
 
 export function stepRecord(part: PartDef, s: RakitState): StepRecord {
   const performed: PerformedAction[] = [];

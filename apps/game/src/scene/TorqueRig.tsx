@@ -9,7 +9,7 @@ import * as THREE from "three";
 import { tick } from "../logic/clickWrench.ts";
 import { PAD_FACE_X, partDef } from "../data/parts.ts";
 import { pull, useGame, type NutRef } from "../state/store.ts";
-import { CLOSEUP_LAYER, closeupDom, M, nutKey, PART_TABLE, rig, V } from "./shared.ts";
+import { CLOSEUP_LAYER, closeupDom, M, nutKey, rig, toBoard, V } from "./shared.ts";
 
 /** Bagian OrbitControls yang dipakai di sini (drei memasangnya sebagai kontrol default). */
 type Orbit = { target: THREE.Vector3; enabled: boolean; update(): void };
@@ -24,13 +24,8 @@ const IN_USE = (() => {
   const x = new THREE.Vector3().crossVectors(y, z).normalize();
   return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z));
 })();
-/** Saat tidak dipakai: rebah di meja part, drive menghadap atas, gagang ke +x. */
-const AT_REST = (() => {
-  const y = V(-1, 0, 0), z = V(0, -1, 0);
-  const x = new THREE.Vector3().crossVectors(y, z);
-  return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z));
-})();
-const REST_POS = V(0.09, PART_TABLE.top + 0.02, PART_TABLE.z - 0.12);
+/** Saat tidak dipakai: tergantung di slotnya di shadow board, kepala di atas. */
+const REST_POS = toBoard(977, 190).add(V(0, 0, 0.03));
 
 /** Pusat mur di koordinat lokal mesin, dari data pad. */
 function nutLocal({ part, index }: NutRef) {
@@ -75,7 +70,7 @@ export function TorqueRig() {
     return () => { scene.remove(wrench); rig.wrench = null; };
   }, [scene, wrench, metaText, gl, camera]);
 
-  // Posisi kunci: menutup mur (ujung socket 55 mm dari drive, muka mur 4 mm di depan pusatnya) atau rebah di meja
+  // Posisi kunci: menutup mur (ujung socket 55 mm dari drive, muka mur 4 mm di depan pusatnya) atau di shadow board
   useEffect(() => {
     if (wrenchAt && rig.engine) {
       rig.engine.updateMatrixWorld(true);
@@ -83,7 +78,7 @@ export function TorqueRig() {
       wrench.quaternion.copy(IN_USE);
     } else {
       wrench.position.copy(REST_POS);
-      wrench.quaternion.copy(AT_REST);
+      wrench.quaternion.identity();
     }
   }, [wrenchAt, wrench]);
 
