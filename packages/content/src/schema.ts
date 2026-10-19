@@ -25,7 +25,13 @@ export const PartSchema = z.object({
 
 export const ActionSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("install") }),
-  z.object({ kind: z.literal("torque"), unit: z.literal("in-lb"), ...SourcedRange }),
+  z.object({
+    kind: z.literal("torque"),
+    unit: z.literal("in-lb"),
+    ...SourcedRange,
+    /** Jumlah mur/baut yang ditorsi di langkah ini (default 1). */
+    fasteners: z.number().int().min(1).optional(),
+  }),
   z.object({ kind: z.literal("safetyWire") }),
   z.object({
     kind: z.literal("adjust"),

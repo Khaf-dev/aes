@@ -86,12 +86,20 @@ export function detectDefects(steps: readonly StepSpec[], log: AssemblyLog): Def
           break;
         }
         case "torque": {
-          const done = next("torque");
-          if (done === undefined) add("underTorque", "Torsi tidak diterapkan");
-          else if (spec.range !== null && done.value < spec.range[0]) {
-            add("underTorque", `Torsi ${done.value} ${spec.unit} di bawah ${formatRange(spec.range, spec.unit)}`);
-          } else if (spec.range !== null && done.value > spec.range[1]) {
-            add("overTorque", `Torsi ${done.value} ${spec.unit} di atas ${formatRange(spec.range, spec.unit)}`);
+          // Satu aksi torsi per langkah (dijaga validasi konten), dinilai per pengencang.
+          const count = spec.fasteners ?? 1;
+          const torqued = record.performed.filter(
+            (p): p is Extract<PerformedAction, { kind: "torque" }> => p.kind === "torque",
+          );
+          for (let fastener = 1; fastener <= count; fastener++) {
+            const label = count > 1 ? `Mur #${fastener}: ` : "";
+            const done = torqued.findLast((p) => (p.fastener ?? 1) === fastener);
+            if (done === undefined) add("underTorque", `${label}Torsi tidak diterapkan`);
+            else if (spec.range !== null && done.value < spec.range[0]) {
+              add("underTorque", `${label}Torsi ${done.value} ${spec.unit} di bawah ${formatRange(spec.range, spec.unit)}`);
+            } else if (spec.range !== null && done.value > spec.range[1]) {
+              add("overTorque", `${label}Torsi ${done.value} ${spec.unit} di atas ${formatRange(spec.range, spec.unit)}`);
+            }
           }
           break;
         }

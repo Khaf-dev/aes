@@ -5,7 +5,9 @@
   "type": "module",
   "description": "Data konten AES: part, langkah perakitan, jaringan, skenario tes, dan skema validasinya.",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./assets/*": "./assets/*",
+    "./data/*": "./data/*"
   },
   "scripts": {
     "test": "vitest run",

@@ -26,15 +26,17 @@ export function idealLog(steps: readonly StepSpec[]): AssemblyLog {
     records: steps.map((step) => ({
       stepId: step.id,
       signedOff: true,
-      performed: step.actions.map((spec): PerformedAction => {
+      performed: step.actions.flatMap((spec): PerformedAction[] => {
+        const mid = "range" in spec && spec.range !== null ? (spec.range[0] + spec.range[1]) / 2 : 1;
         switch (spec.kind) {
           case "install":
-            return { kind: "install", partId: step.partId };
+            return [{ kind: "install", partId: step.partId }];
           case "torque":
+            return Array.from({ length: spec.fasteners ?? 1 }, (_, i) => ({ kind: "torque", value: mid, fastener: i + 1 }));
           case "adjust":
-            return { kind: spec.kind, value: spec.range === null ? 1 : (spec.range[0] + spec.range[1]) / 2 };
+            return [{ kind: "adjust", value: mid }];
           default:
-            return { kind: spec.kind };
+            return [{ kind: spec.kind }];
         }
       }),
     })),

@@ -44,6 +44,30 @@ describe("detectDefects", () => {
     ]);
   });
 
+  it("torsi dinilai per pengencang, torsi ulang terakhir yang berlaku", () => {
+    const twoNuts = steps.map((s) =>
+      s.id === "24-30-02"
+        ? { ...s, actions: s.actions.map((a) => (a.kind === "torque" ? { ...a, fasteners: 2 } : a)) }
+        : s,
+    );
+    const record = (...torques: { value: number; fastener: number }[]) => ({
+      stepId: "24-30-02",
+      performed: [
+        { kind: "install", partId: "ele.cable.battery-relay" } as const,
+        ...torques.map((t) => ({ kind: "torque", ...t }) as const),
+      ],
+      signedOff: true,
+    });
+    expect(detectDefects(twoNuts, withRecord(idealLog(twoNuts), record({ value: 9, fastener: 1 })))).toMatchObject([
+      { kind: "underTorque", detail: "Mur #2: Torsi tidak diterapkan" },
+    ]);
+    const reworked = record({ value: 9, fastener: 1 }, { value: 5, fastener: 2 }, { value: 14, fastener: 2 });
+    expect(detectDefects(twoNuts, withRecord(idealLog(twoNuts), reworked))).toMatchObject([
+      { kind: "overTorque", detail: "Mur #2: Torsi 14 in-lb di atas 8–10 in-lb" },
+    ]);
+    expect(detectDefects(twoNuts, idealLog(twoNuts))).toEqual([]);
+  });
+
   it("batas rentang dihitung inklusif", () => {
     const log = withRecord(idealLog(steps), {
       stepId: "24-30-02",

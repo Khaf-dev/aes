@@ -13,7 +13,7 @@
       "actions": [
         { "kind": "inspect" },
         { "kind": "install" },
-        { "kind": "torque", "unit": "in-lb", "range": null, "source": null },
+        { "kind": "torque", "unit": "in-lb", "range": null, "source": null, "fasteners": 2 },
         { "kind": "adjust", "what": "timing", "unit": "deg", "range": null, "source": null },
         { "kind": "inspect" }
       ]

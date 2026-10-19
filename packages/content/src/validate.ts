@@ -72,6 +72,9 @@ function checkPack(pack: ContentPack): string[] {
     for (const req of step.requires) {
       if (!stepIds.has(req)) errors.push(`Langkah ${step.id} butuh langkah yang tidak ada: ${req}`);
     }
+    if (step.actions.filter((a) => a.kind === "torque").length > 1) {
+      errors.push(`Langkah ${step.id}: maksimal satu aksi torsi per langkah (pakai "fasteners" untuk banyak mur)`);
+    }
     for (const action of step.actions) {
       if (action.kind !== "torque" && action.kind !== "adjust") continue;
       if (action.range === null) continue;

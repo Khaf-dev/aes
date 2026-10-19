@@ -13,7 +13,7 @@ packages/content   data part & prosedur + skema validasi (Zod)
                    assets/: model GLB + metadata hasil asset pipeline (hardware, tier2)
 assets-src/        bahan mentah aset: gambar input dan mesh AI sebelum diproses
 tools/asset-pipeline  pipeline aset: part kecil parametrik (CadQuery) + bake mesh AI Tier 2
-apps/game          aplikasi game (menunggu brainstorming UI)
+apps/game          aplikasi game: hanggar 3D React Three Fiber + overlay UI (mode rakit)
 ```
 
 ## Prasyarat
@@ -28,6 +28,7 @@ apps/game          aplikasi game (menunggu brainstorming UI)
 pnpm install
 pnpm test        # semua unit test
 pnpm typecheck   # cek tipe semua paket
+pnpm dev         # jalankan game (mode rakit) di browser
 ```
 
 ## Aturan main

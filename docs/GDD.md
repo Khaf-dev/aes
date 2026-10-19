@@ -214,7 +214,7 @@ Game dibangun di web dengan TypeScript, dalam monorepo pnpm. Aturan utamanya: lo
 | --- | --- | --- |
 | `sim-core` | Resource network, dependency graph perakitan, defect, simulasi tes, diagnosis | TypeScript murni, tanpa dependensi UI, deterministik |
 | `content` | Data part, langkah, efek defect, narasi handbook | JSON divalidasi Zod, MDX |
-| `renderer` | Scene 3D, mode x-ray, wireframe, exploded view | Three.js lewat React Three Fiber |
+| `renderer` | Scene 3D, mode x-ray, wireframe, exploded view | Three.js lewat React Three Fiber. Sementara tinggal di `apps/game/src/scene`; dipisah jadi paket sendiri saat ada konsumen kedua |
 | `app` | UI hanggar, handbook, laporan investigasi, logbook | React + Vite |
 | `persistence` | Save, profil lokal, event log | IndexedDB (Dexie) |
 | `server` (nanti) | Akun, sinkronisasi logbook | NestJS + PostgreSQL |
@@ -314,6 +314,30 @@ Fitur di bawah ini sengaja tidak masuk MVP dan dicatat di sini supaya tidak terl
 | Skala bersumber untuk magneto | Model magneto sekarang memakai panjang placeholder 180 mm. Perlu dimensi bersumber dan disesuaikan dengan pad dudukan di mesin |
 | FOD dari shadow board (disetujui, belum dijadwalkan) | Alat yang belum kembali ke shadow board saat tes dimulai dianggap tertinggal di area kerja sebagai FOD (foreign object debris). Dicatat sebagai defect baru `fod` dengan lokasi alat terakhir dipakai, dan bisa jadi akar masalah kegagalan tes. Laporan investigasi menunjuk slot kosong di shadow board sebagai clue. Mengikuti praktik nyata tool control di hanggar |
 
+### Kekurangan prototipe yang dicatat (19 Oktober 2026)
+
+Belum dikerjakan, dibahas dulu sebelum digarap.
+
+| Kekurangan | Catatan |
+| --- | --- |
+| Sudut sorot dan posisi headlamp belum bersumber | Daya 280 lm sudah bersumber. Sudut sorot 25° dan tinggi dahi 6 cm di atas mata masih placeholder |
+| Grip kunci torsi 3D tidak bergeser saat setelan diubah | Di kunci asli, memutar gagang menggeser thimble di sepanjang barrel. Butuh jarak geser bersumber sebelum dianimasikan; sekarang setelan hanya terlihat di kaca pembesar |
+| Putaran mur tertutup socket di close-up | Dilihat dari sumbu stud, socket menutupi mur, jadi gerak mur hanya terbaca lewat ayunan gagang. Perlu cara menampilkan gerak mur yang tetap realistis |
+| Layout close-up di layar kecil belum dicek | Baru diuji di desktop 1280×760. Posisi kaca pembesar, slip log, dan tombol perlu dicek di layar sempit |
+| Kamera close-up tanpa cek tabrakan | Posisi kamera close-up secara fisik berada di dalam pelat firewall; tidak terlihat karena hanya layer close-up yang dirender |
+| Model kunci torsi masih 61 draw call | CadQuery mengekspor satu primitive per face. Gabungkan per material di pipeline |
+| Dimensi kunci torsi belum terverifikasi | Dari katalog distributor, `verified: false`. Perlu dicek ke sumber kedua |
+| Jumlah mur pengikat magneto belum bersumber | `fasteners: 2` di langkah 74-10-01 diambil dari model magneto (dua telinga flange), bukan dari dokumen teknis |
+| Port prototipe irisan kedua | Lensa x-ray, tag inspeksi, shadow board, meja kerja + task card fisik, papan tulis, starter, putar otomatis kamera belum dipindah ke `apps/game` |
+| Bundel JS game 1,4 MB | Belum dipecah (code splitting); termasuk three.js, drei, dan Zod untuk validasi konten saat jalan |
+| Part Tier 2 alternator dan karburator | Gambar input sudah ada di `assets-src`, tinggal generate mesh di TRELLIS.2 saat kuota GPU tersedia |
+
+Pertanyaan terbuka:
+
+- Apakah mode Trainee boleh menampilkan torsi aktual di slip log?
+- Konfirmasi aturan pad salah menolak part (flange tidak cocok).
+- Pakai Git LFS untuk aset mentah (`assets-src`)?
+
 Dihapus dari rencana: kuis atau ujian per bab. Belajar terjadi lewat kegagalan dan investigasi.
 
 ## Risiko & keputusan
@@ -333,3 +357,5 @@ Keputusan yang sudah diambil:
 - [x] Platform target pertama: browser desktop.
 - [x] Nama game: AES (Aerospace Engineer Simulator).
 - [x] FOD dari shadow board: disetujui sebagai fitur, masuk roadmap dulu.
+- [x] Prototipe mode rakit dipindah ke `apps/game` dengan React Three Fiber; scene di `apps/game` dulu, belum paket `renderer` (19 Oktober 2026).
+- [x] Torsi dicatat per pengencang: aksi torsi di data konten punya `fasteners`, dan tiap mur punya catatan torsinya sendiri, supaya laporan investigasi bisa menunjuk mur mana yang salah.

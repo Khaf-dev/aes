@@ -37,6 +37,12 @@ describe("validateContentPack", () => {
     expect(result.ok).toBe(true);
   });
 
+  it("menolak dua aksi torsi dalam satu langkah", () => {
+    const torque = { kind: "torque", unit: "in-lb", range: null, source: null };
+    const result = validateContentPack({ parts: [part], steps: [step("74-10-01", [], [torque, torque])] });
+    expect(errorsOf(result).join("\n")).toMatch(/fasteners/);
+  });
+
   it("menolak rentang terbalik", () => {
     const result = validateContentPack({
       parts: [part],

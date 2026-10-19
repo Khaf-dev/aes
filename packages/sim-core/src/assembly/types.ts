@@ -6,7 +6,13 @@ export type Range = readonly [min: number, max: number];
 /** Aksi yang seharusnya dilakukan di satu langkah perakitan (dari data konten). */
 export type ActionSpec =
   | { readonly kind: "install" }
-  | { readonly kind: "torque"; readonly unit: "in-lb"; readonly range: Range | null }
+  | {
+      readonly kind: "torque";
+      readonly unit: "in-lb";
+      readonly range: Range | null;
+      /** Jumlah pengencang (mur/baut) yang harus ditorsi di langkah ini. Default 1. */
+      readonly fasteners?: number;
+    }
   | { readonly kind: "safetyWire" }
   | {
       readonly kind: "adjust";
@@ -47,7 +53,8 @@ export interface StepSpec {
 /** Aksi yang benar-benar dilakukan engineer. */
 export type PerformedAction =
   | { readonly kind: "install"; readonly partId: string }
-  | { readonly kind: "torque"; readonly value: number }
+  /** `fastener`: nomor pengencang mulai 1 (default 1). Torsi ulang di mur yang sama: yang terakhir berlaku. */
+  | { readonly kind: "torque"; readonly value: number; readonly fastener?: number }
   | { readonly kind: "safetyWire" }
   | { readonly kind: "adjust"; readonly value: number }
   | { readonly kind: "connect" }

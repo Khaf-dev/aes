@@ -57,16 +57,18 @@ export function basicSteps(): StepSpec[] {
 
 /** Aksi sempurna untuk satu spesifikasi aksi. */
 function ideal(step: StepSpec): PerformedAction[] {
-  return step.actions.map((spec): PerformedAction => {
+  return step.actions.flatMap((spec): PerformedAction[] => {
     switch (spec.kind) {
       case "install":
-        return { kind: "install", partId: step.partId };
-      case "torque":
-        return { kind: "torque", value: spec.range === null ? 1 : (spec.range[0] + spec.range[1]) / 2 };
+        return [{ kind: "install", partId: step.partId }];
+      case "torque": {
+        const value = spec.range === null ? 1 : (spec.range[0] + spec.range[1]) / 2;
+        return Array.from({ length: spec.fasteners ?? 1 }, (_, i) => ({ kind: "torque", value, fastener: i + 1 }));
+      }
       case "adjust":
-        return { kind: "adjust", value: spec.range === null ? 1 : (spec.range[0] + spec.range[1]) / 2 };
+        return [{ kind: "adjust", value: spec.range === null ? 1 : (spec.range[0] + spec.range[1]) / 2 }];
       default:
-        return { kind: spec.kind };
+        return [{ kind: spec.kind }];
     }
   });
 }
