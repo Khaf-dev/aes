@@ -1,0 +1,79 @@
+{
+  "id": "hw.washer.an960-10",
+  "standard": "AN960-10",
+  "name": "Ring datar AN960-10 (#10)",
+  "kind": "washer",
+  "tier": 3,
+  "model": "hw.washer.an960-10.glb",
+  "units": "m",
+  "upAxis": "Y",
+  "meshes": [
+    "body"
+  ],
+  "triangles": 672,
+  "boundingBox": {
+    "min": [
+      -0.005662,
+      -4e-06,
+      -0.005662
+    ],
+    "max": [
+      0.005662,
+      0.001604,
+      0.005662
+    ]
+  },
+  "attachPoints": {
+    "bottom": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "normal": [
+        0.0,
+        -1.0,
+        0.0
+      ]
+    },
+    "top": {
+      "position": [
+        0.0,
+        0.0016,
+        0.0
+      ],
+      "normal": [
+        0.0,
+        1.0,
+        0.0
+      ]
+    }
+  },
+  "dimensions": {
+    "insideDiameter": {
+      "min": 0.193,
+      "max": 0.213,
+      "nominal": 0.203,
+      "unit": "in"
+    },
+    "outsideDiameter": {
+      "min": 0.433,
+      "max": 0.458,
+      "nominal": 0.4455,
+      "unit": "in"
+    },
+    "thickness": {
+      "min": 0.053,
+      "max": 0.073,
+      "nominal": 0.063,
+      "unit": "in"
+    }
+  },
+  "source": {
+    "url": "https://military-fasteners.com/catalog/pdf/AN960-10",
+    "kind": "katalog distributor",
+    "verified": false,
+    "note": "Belum dicocokkan dengan dokumen standar AN960 resmi."
+  },
+  "generator": "aes-asset-pipeline 0.1.0"
+}

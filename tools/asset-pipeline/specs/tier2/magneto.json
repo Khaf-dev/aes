@@ -1,0 +1,31 @@
+{
+  "id": "acc.magneto.mk1",
+  "name": "Magneto pengapian (desain generik AES)",
+  "kind": "magneto",
+  "tier": 2,
+  "source": {
+    "raw": "assets-src/tier2/magneto/trellis2-raw.glb",
+    "inputImage": "assets-src/tier2/magneto/input-b.png",
+    "meshGenerator": "TRELLIS.2 (Hugging Face Space microsoft/TRELLIS.2, model berlisensi MIT)",
+    "imageGenerator": "Meshy text-to-image, model Nano Banana 2, akun Free (CC BY 4.0)",
+    "date": "2026-10-19"
+  },
+  "mount": {
+    "axis": "-x",
+    "flangeRadiusRatio": 0.75
+  },
+  "scale": {
+    "overallLengthMm": null,
+    "placeholderLengthMm": 180,
+    "note": "Belum ada sumber dimensi magneto. 180 mm hanya placeholder visual supaya model berukuran wajar di scene; ganti dengan nilai bersumber sebelum part ini dipakai untuk data teknis."
+  },
+  "lod0": {
+    "targetTriangles": 30000,
+    "textureSize": 1024,
+    "creaseAngleDeg": 35
+  },
+  "credits": [
+    "Gambar referensi magneto dibuat dengan Meshy (meshy.ai), CC BY 4.0",
+    "Model 3D dasar dihasilkan dengan Microsoft TRELLIS.2 (MIT License)"
+  ]
+}

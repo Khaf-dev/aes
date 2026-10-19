@@ -1,0 +1,21 @@
+{
+  "name": "@aes/content",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Data konten AES: part, langkah perakitan, jaringan, skenario tes, dan skema validasinya.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aes/sim-core": "workspace:*",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0"
+  }
+}

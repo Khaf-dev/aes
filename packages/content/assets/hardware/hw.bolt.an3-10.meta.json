@@ -1,0 +1,116 @@
+{
+  "id": "hw.bolt.an3-10",
+  "standard": "AN3-10",
+  "name": "Baut AN3-10 (#10-32, shank dibor)",
+  "kind": "bolt",
+  "tier": 3,
+  "model": "hw.bolt.an3-10.glb",
+  "units": "m",
+  "upAxis": "Y",
+  "meshes": [
+    "body",
+    "thread"
+  ],
+  "triangles": 1526,
+  "boundingBox": {
+    "min": [
+      -0.005441,
+      -0.026193,
+      -0.004712
+    ],
+    "max": [
+      0.005441,
+      0.003175,
+      0.004712
+    ]
+  },
+  "attachPoints": {
+    "headBearing": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "normal": [
+        0.0,
+        -1.0,
+        0.0
+      ]
+    },
+    "tip": {
+      "position": [
+        0.0,
+        -0.026187,
+        0.0
+      ],
+      "normal": [
+        0.0,
+        -1.0,
+        0.0
+      ]
+    },
+    "cotterHole": {
+      "position": [
+        0.0,
+        -0.022631,
+        0.0
+      ],
+      "axis": [
+        1.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "dimensions": {
+    "threadDiameter": {
+      "min": 0.19,
+      "max": 0.19,
+      "nominal": 0.19,
+      "unit": "in"
+    },
+    "threadsPerInch": {
+      "min": 32.0,
+      "max": 32.0,
+      "nominal": 32.0,
+      "unit": "in"
+    },
+    "length": {
+      "min": 1.031,
+      "max": 1.031,
+      "nominal": 1.031,
+      "unit": "in"
+    },
+    "gripLength": {
+      "min": 0.625,
+      "max": 0.625,
+      "nominal": 0.625,
+      "unit": "in"
+    },
+    "threadLength": {
+      "min": 0.406,
+      "max": 0.406,
+      "nominal": 0.406,
+      "unit": "in"
+    },
+    "headHeight": {
+      "min": 0.109,
+      "max": 0.141,
+      "nominal": 0.125,
+      "unit": "in"
+    },
+    "widthAcrossFlats": {
+      "min": 0.365,
+      "max": 0.377,
+      "nominal": 0.371,
+      "unit": "in"
+    }
+  },
+  "source": {
+    "url": "https://military-fasteners.com/bolts/machine bolts/an3-10",
+    "kind": "katalog distributor",
+    "verified": false,
+    "note": "Belum dicocokkan dengan dokumen standar AN3 resmi."
+  },
+  "generator": "aes-asset-pipeline 0.1.0"
+}

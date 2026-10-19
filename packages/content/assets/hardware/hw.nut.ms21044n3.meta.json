@@ -1,0 +1,86 @@
+{
+  "id": "hw.nut.ms21044n3",
+  "standard": "MS21044N3",
+  "name": "Mur kunci MS21044N3 (#10-32, sisipan nilon)",
+  "kind": "nut",
+  "tier": 3,
+  "model": "hw.nut.ms21044n3.glb",
+  "units": "m",
+  "upAxis": "Y",
+  "meshes": [
+    "body",
+    "nylonInsert"
+  ],
+  "triangles": 1440,
+  "boundingBox": {
+    "min": [
+      -0.005262,
+      -1e-06,
+      -0.004718
+    ],
+    "max": [
+      0.005262,
+      0.006212,
+      0.004718
+    ]
+  },
+  "attachPoints": {
+    "bearingFace": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "normal": [
+        0.0,
+        -1.0,
+        0.0
+      ]
+    },
+    "top": {
+      "position": [
+        0.0,
+        0.00621,
+        0.0
+      ],
+      "normal": [
+        0.0,
+        1.0,
+        0.0
+      ]
+    }
+  },
+  "dimensions": {
+    "threadDiameter": {
+      "min": 0.19,
+      "max": 0.19,
+      "nominal": 0.19,
+      "unit": "in"
+    },
+    "threadsPerInch": {
+      "min": 32.0,
+      "max": 32.0,
+      "nominal": 32.0,
+      "unit": "in"
+    },
+    "widthAcrossFlats": {
+      "min": 0.367,
+      "max": 0.376,
+      "nominal": 0.3715,
+      "unit": "in"
+    },
+    "height": {
+      "min": 0.208,
+      "max": 0.281,
+      "nominal": 0.2445,
+      "unit": "in"
+    }
+  },
+  "source": {
+    "url": "https://military-fasteners.com/catalog/pdf/MS21044N3",
+    "kind": "katalog distributor",
+    "verified": false,
+    "note": "Pengganti AN365. Belum dicocokkan dengan dokumen standar MS21044 resmi."
+  },
+  "generator": "aes-asset-pipeline 0.1.0"
+}

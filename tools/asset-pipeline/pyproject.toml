@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aes-asset-pipeline"
+version = "0.1.0"
+description = "Generator model 3D parametrik (GLB + metadata) untuk part hardware AES"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  # Dipin persis: perubahan versi OCCT bisa menggeser tessellation dan konvensi sumbu glTF.
+  "cadquery==2.7.0",
+  "pygltflib>=1.16,<2",
+  # Tahap Tier 2 (mesh AI -> aset game)
+  "trimesh>=4.5,<6",
+  "fast-simplification>=0.1.9,<0.3",
+  "xatlas==0.0.11",
+  "scipy>=1.13",
+  "Pillow>=10",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+aes-assets = "aes_assets.cli:main"
+
+[tool.setuptools]
+packages = ["aes_assets"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-m 'not slow'"
+markers = ["slow: memproses aset nyata dari assets-src (sekitar 1 menit)"]
+filterwarnings = ["ignore::DeprecationWarning", "ignore::FutureWarning"]

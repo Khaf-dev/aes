@@ -1,0 +1,65 @@
+{
+  "parts": [
+    { "id": "ele.battery", "name": "Baterai", "ataChapter": 24, "tier": 1 },
+    { "id": "ele.cable.battery-relay", "name": "Kabel baterai ke relay baterai", "ataChapter": 24, "tier": 3 },
+    { "id": "ele.cable.bus-starter", "name": "Kabel bus utama ke relay starter", "ataChapter": 24, "tier": 3 },
+    { "id": "ele.cable.starter", "name": "Kabel starter", "ataChapter": 24, "tier": 3 }
+  ],
+  "steps": [
+    {
+      "id": "24-30-01",
+      "title": "Pasang baterai",
+      "partId": "ele.battery",
+      "requires": [],
+      "actions": [{ "kind": "install" }, { "kind": "inspect" }],
+      "effects": {
+        "missing": [{ "kind": "missing", "linkId": "w.battery-relay" }]
+      }
+    },
+    {
+      "id": "24-30-02",
+      "title": "Sambungkan kabel baterai ke relay baterai",
+      "partId": "ele.cable.battery-relay",
+      "requires": ["24-30-01"],
+      "actions": [
+        { "kind": "install" },
+        { "kind": "torque", "unit": "in-lb", "range": null, "source": null },
+        { "kind": "inspect" }
+      ],
+      "effects": {
+        "missing": [{ "kind": "missing", "linkId": "w.battery-relay" }],
+        "underTorque": [{ "kind": "addedResistance", "linkId": "w.battery-relay", "ohms": 0.05 }]
+      }
+    },
+    {
+      "id": "24-30-03",
+      "title": "Sambungkan kabel bus utama ke relay starter",
+      "partId": "ele.cable.bus-starter",
+      "requires": ["24-30-01"],
+      "actions": [
+        { "kind": "install" },
+        { "kind": "torque", "unit": "in-lb", "range": null, "source": null },
+        { "kind": "inspect" }
+      ],
+      "effects": {
+        "missing": [{ "kind": "missing", "linkId": "w.bus-starter-relay" }],
+        "underTorque": [{ "kind": "addedResistance", "linkId": "w.bus-starter-relay", "ohms": 0.05 }]
+      }
+    },
+    {
+      "id": "24-30-04",
+      "title": "Sambungkan kabel starter",
+      "partId": "ele.cable.starter",
+      "requires": ["24-30-03"],
+      "actions": [
+        { "kind": "install" },
+        { "kind": "torque", "unit": "in-lb", "range": null, "source": null },
+        { "kind": "inspect" }
+      ],
+      "effects": {
+        "missing": [{ "kind": "missing", "linkId": "w.starter-cable" }],
+        "underTorque": [{ "kind": "addedResistance", "linkId": "w.starter-cable", "ohms": 0.05 }]
+      }
+    }
+  ]
+}

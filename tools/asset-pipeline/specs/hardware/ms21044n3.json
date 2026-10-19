@@ -1,0 +1,20 @@
+{
+  "id": "hw.nut.ms21044n3",
+  "standard": "MS21044N3",
+  "kind": "nut",
+  "name": "Mur kunci MS21044N3 (#10-32, sisipan nilon)",
+  "tier": 3,
+  "units": "in",
+  "dims": {
+    "threadDiameter": { "value": 0.19 },
+    "threadsPerInch": { "value": 32 },
+    "widthAcrossFlats": { "min": 0.367, "max": 0.376 },
+    "height": { "min": 0.208, "max": 0.281 }
+  },
+  "source": {
+    "url": "https://military-fasteners.com/catalog/pdf/MS21044N3",
+    "kind": "katalog distributor",
+    "verified": false,
+    "note": "Pengganti AN365. Belum dicocokkan dengan dokumen standar MS21044 resmi."
+  }
+}

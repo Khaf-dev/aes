@@ -1,0 +1,29 @@
+{
+  "parts": [
+    { "id": "ign.magneto.left", "name": "Magneto kiri", "ataChapter": 74, "tier": 2 },
+    { "id": "ign.gasket.magneto", "name": "Gasket magneto", "ataChapter": 74, "tier": 3 },
+    { "id": "ele.p-lead.left", "name": "Kabel P-lead kiri", "ataChapter": 74, "tier": 3 }
+  ],
+  "steps": [
+    {
+      "id": "74-10-01",
+      "title": "Pasang magneto kiri",
+      "partId": "ign.magneto.left",
+      "requires": [],
+      "actions": [
+        { "kind": "inspect" },
+        { "kind": "install" },
+        { "kind": "torque", "unit": "in-lb", "range": null, "source": null },
+        { "kind": "adjust", "what": "timing", "unit": "deg", "range": null, "source": null },
+        { "kind": "inspect" }
+      ]
+    },
+    {
+      "id": "74-10-03",
+      "title": "Sambungkan kabel P-lead magneto kiri",
+      "partId": "ele.p-lead.left",
+      "requires": ["74-10-01"],
+      "actions": [{ "kind": "connect", "to": "ign.magneto.left" }, { "kind": "inspect" }]
+    }
+  ]
+}

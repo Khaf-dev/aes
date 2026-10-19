@@ -1,0 +1,19 @@
+{
+  "id": "hw.washer.an960-10",
+  "standard": "AN960-10",
+  "kind": "washer",
+  "name": "Ring datar AN960-10 (#10)",
+  "tier": 3,
+  "units": "in",
+  "dims": {
+    "insideDiameter": { "min": 0.193, "max": 0.213 },
+    "outsideDiameter": { "min": 0.433, "max": 0.458 },
+    "thickness": { "min": 0.053, "max": 0.073 }
+  },
+  "source": {
+    "url": "https://military-fasteners.com/catalog/pdf/AN960-10",
+    "kind": "katalog distributor",
+    "verified": false,
+    "note": "Belum dicocokkan dengan dokumen standar AN960 resmi."
+  }
+}

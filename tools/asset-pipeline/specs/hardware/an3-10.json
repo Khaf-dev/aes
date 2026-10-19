@@ -1,0 +1,26 @@
+{
+  "id": "hw.bolt.an3-10",
+  "standard": "AN3-10",
+  "kind": "bolt",
+  "name": "Baut AN3-10 (#10-32, shank dibor)",
+  "tier": 3,
+  "units": "in",
+  "dims": {
+    "threadDiameter": { "value": 0.19 },
+    "threadsPerInch": { "value": 32 },
+    "length": { "value": 1.031 },
+    "gripLength": { "value": 0.625 },
+    "threadLength": { "value": 0.406 },
+    "headHeight": { "min": 0.109, "max": 0.141 },
+    "widthAcrossFlats": { "min": 0.365, "max": 0.377 }
+  },
+  "extras": {
+    "cotterHole": { "diameter": 0.07, "fromHead": 0.891 }
+  },
+  "source": {
+    "url": "https://military-fasteners.com/bolts/machine bolts/an3-10",
+    "kind": "katalog distributor",
+    "verified": false,
+    "note": "Belum dicocokkan dengan dokumen standar AN3 resmi."
+  }
+}

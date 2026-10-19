@@ -1,0 +1,71 @@
+{
+  "id": "acc.starter.mk1",
+  "name": "Motor starter (desain generik AES)",
+  "kind": "starter",
+  "tier": 2,
+  "model": "acc.starter.mk1.glb",
+  "units": "m",
+  "upAxis": "Y",
+  "triangles": 29998,
+  "boundingBox": {
+    "min": [
+      -0.173828,
+      -0.059159,
+      -0.08321
+    ],
+    "max": [
+      0.026251,
+      0.060848,
+      0.0784
+    ]
+  },
+  "attachPoints": {
+    "mountFace": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "normal": [
+        1.0,
+        0.0,
+        0.0
+      ]
+    },
+    "shaftTip": {
+      "position": [
+        0.026251,
+        0.0,
+        0.0
+      ],
+      "normal": [
+        1.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "scale": {
+    "basis": "placeholder",
+    "overallLengthMm": 200,
+    "verified": false,
+    "source": null
+  },
+  "texture": {
+    "size": 1024,
+    "coverage": 0.657
+  },
+  "shapeDrift": 0.001,
+  "provenance": {
+    "raw": "assets-src/tier2/starter/trellis2-raw.glb",
+    "inputImage": "assets-src/tier2/starter/input-1.png",
+    "meshGenerator": "TRELLIS.2 (Hugging Face Space microsoft/TRELLIS.2, model berlisensi MIT)",
+    "imageGenerator": "Meshy text-to-image, model Nano Banana 2, akun Free (CC BY 4.0)",
+    "date": "2026-10-19"
+  },
+  "credits": [
+    "Gambar referensi starter dibuat dengan Meshy (meshy.ai), CC BY 4.0",
+    "Model 3D dasar dihasilkan dengan Microsoft TRELLIS.2 (MIT License)"
+  ],
+  "generator": "aes-asset-pipeline 0.1.0"
+}

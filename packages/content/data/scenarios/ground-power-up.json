@@ -1,0 +1,6 @@
+{
+  "id": "ground-power-up",
+  "label": "Ground power-up dan start mesin",
+  "switches": { "sw.master": true, "sw.avionics": true },
+  "mustOperate": ["load.starter", "load.radio"]
+}
