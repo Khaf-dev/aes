@@ -4,6 +4,7 @@ Dua jalur, satu format hasil (GLB dalam meter, Y-up, plus `<id>.meta.json`):
 
 ```
 Tier 3  specs/hardware/*.json -> CadQuery (B-rep) ------------------> packages/content/assets/hardware/
+Alat    specs/tools/*.json    -> CadQuery (B-rep) ------------------> packages/content/assets/tools/
 Tier 2  specs/tier2/*.json    -> mesh AI mentah (assets-src/) -> bake -> packages/content/assets/tier2/
 ```
 
@@ -34,6 +35,8 @@ supaya game bisa memberi normal map ulir di situ.
 | Titik asal | permukaan tumpu: bawah kepala baut, muka bawah mur dan ring |
 | Nilai yang dimodelkan | nominal = nilai tengah rentang min–maks dari sumber |
 | Anggaran segitiga | ≤ 3000 per part (dirender ratusan kali lewat instancing) |
+| Anggaran segitiga alat | ≤ 8000 (cuma satu instance di layar) |
+| Titik asal alat | pusat square drive kunci torsi |
 
 Writer glTF OpenCascade sudah mengubah Z-up (CAD) ke Y-up. Pipeline hanya
 menambah node akar berskala 0,001 (mm ke m), **tanpa rotasi tambahan**.
@@ -136,6 +139,7 @@ pytest -m slow
 | `hw.washer.an960-10` | katalog distributor | belum |
 | `acc.magneto.mk1` | TRELLIS.2 dari gambar Meshy (CC BY 4.0) | skala placeholder 180 mm |
 | `acc.starter.mk1` | TRELLIS.2 dari gambar Meshy (CC BY 4.0) | skala placeholder 200 mm |
+| `tool.torque-wrench.40-200` | dimensi katalog distributor; bentuk mengikuti referensi visual, bukan salinan model | belum |
 
 Catatan: GLB mur (`hw.nut.ms21044n3`) tidak identik byte-per-byte antar build,
 walau geometrinya sama. Kalau git menandainya berubah setelah build ulang, abaikan.

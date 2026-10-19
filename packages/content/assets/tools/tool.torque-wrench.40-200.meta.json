@@ -1,0 +1,115 @@
+{
+  "id": "tool.torque-wrench.40-200",
+  "standard": "Kunci torsi klik 3/8 in, 40-200 in-lb",
+  "name": "Kunci torsi tipe klik 3/8 in · 40–200 in-lb",
+  "kind": "torque_wrench",
+  "tier": 3,
+  "model": "tool.torque-wrench.40-200.glb",
+  "units": "m",
+  "upAxis": "Y",
+  "meshes": [
+    "body",
+    "badge",
+    "drive",
+    "barrel",
+    "lockRing",
+    "grip",
+    "endCap"
+  ],
+  "triangles": 5408,
+  "boundingBox": {
+    "min": [
+      -0.01585,
+      -0.274804,
+      -0.020161
+    ],
+    "max": [
+      0.01585,
+      0.01299,
+      0.01585
+    ]
+  },
+  "attachPoints": {
+    "drive": {
+      "position": [
+        0.0,
+        0.0,
+        -0.020161
+      ],
+      "axis": [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    "gripCenter": {
+      "position": [
+        0.0,
+        -0.229466,
+        0.0
+      ],
+      "axis": [
+        0.0,
+        -1.0,
+        0.0
+      ]
+    },
+    "scaleEdge": {
+      "position": [
+        0.0,
+        -0.179832,
+        0.0
+      ],
+      "axis": [
+        0.0,
+        -1.0,
+        0.0
+      ]
+    }
+  },
+  "dimensions": {
+    "overallLength": {
+      "min": 11.328,
+      "max": 11.328,
+      "nominal": 11.328,
+      "unit": "in"
+    },
+    "headHeight": {
+      "min": 0.875,
+      "max": 0.875,
+      "nominal": 0.875,
+      "unit": "in"
+    },
+    "driveSize": {
+      "min": 0.375,
+      "max": 0.375,
+      "nominal": 0.375,
+      "unit": "in"
+    },
+    "rangeMin": {
+      "min": 40.0,
+      "max": 40.0,
+      "nominal": 40.0,
+      "unit": "in"
+    },
+    "rangeMax": {
+      "min": 200.0,
+      "max": 200.0,
+      "nominal": 200.0,
+      "unit": "in"
+    },
+    "graduation": {
+      "min": 1.0,
+      "max": 1.0,
+      "nominal": 1.0,
+      "unit": "in"
+    }
+  },
+  "source": {
+    "url": "https://shop.butlerbros.com/catalogue/product/1195504",
+    "kind": "katalog distributor (Proto 3/8 in ratcheting head micrometer torque wrench 40-200 in-lb)",
+    "verified": false,
+    "note": "Panjang total 11 21/64 in, tinggi kepala 7/8 in, skala 1 in-lb. Belum dicocokkan ke lembar data pabrikan."
+  },
+  "generator": "aes-asset-pipeline 0.1.0"
+}

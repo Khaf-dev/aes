@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 MM_PER_UNIT = {"in": 25.4, "mm": 1.0}
-KINDS = {"bolt", "nut", "washer"}
+KINDS = {"bolt", "nut", "washer", "torque_wrench"}
 
 
 class SpecError(ValueError):

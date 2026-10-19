@@ -10,8 +10,10 @@ from aes_assets.generators import generate
 from aes_assets.spec import Dimension, SpecError, load_spec, load_specs
 
 SPECS = Path(__file__).resolve().parent.parent / "specs" / "hardware"
+TOOL_SPECS = Path(__file__).resolve().parent.parent / "specs" / "tools"
 TOL_MM = 0.02
 TRIANGLE_BUDGET = 3000  # part Tier 3 dirender ratusan kali lewat instancing
+TOOL_TRIANGLE_BUDGET = 8000  # alat cuma satu salinan di scene, boleh lebih detail
 
 
 def spec(part_id: str):
@@ -140,3 +142,24 @@ def test_metadata_ring_dalam_meter(tmp_path):
     assert width_m == pytest.approx(s.mm("outsideDiameter") * MM_TO_M, abs=1e-5)
     assert meta["attachPoints"]["top"]["position"][1] == pytest.approx(s.mm("thickness") * MM_TO_M, abs=1e-6)
     assert meta["attachPoints"]["top"]["normal"] == [0, 1, 0]
+
+
+# ---------- Alat: kunci torsi ----------
+
+def test_kunci_torsi_sesuai_dimensi_bersumber(tmp_path):
+    s = load_specs(TOOL_SPECS)[0]
+    g = generate(s)
+    x, y, z, bb = extents(g)
+    assert z == pytest.approx(s.mm("overallLength"), abs=TOL_MM)
+    drive = next(m for m in g.meshes if m.name == "drive").shape.val().BoundingBox()
+    assert drive.xlen == pytest.approx(s.mm("driveSize"), abs=TOL_MM)
+    body = next(m for m in g.meshes if m.name == "body").shape.val().BoundingBox()
+    assert body.ylen == pytest.approx(s.mm("headHeight"), abs=0.5), "tebal kepala = tinggi kepala katalog"
+    assert {"body", "drive", "barrel", "grip"} <= {m.name for m in g.meshes}
+
+    meta = export_part(s, g, tmp_path)
+    loaded = trimesh.load(str(tmp_path / f"{s.id}.glb")).to_geometry()
+    size = loaded.bounds[1] - loaded.bounds[0]
+    assert size[1] == pytest.approx(s.mm("overallLength") * MM_TO_M, abs=1e-4), "sumbu panjang = Y"
+    assert meta["attachPoints"]["drive"]["axis"] == [0, 0, -1], "square drive mengarah -z (masuk ke mur)"
+    assert 0 < meta["triangles"] <= TOOL_TRIANGLE_BUDGET

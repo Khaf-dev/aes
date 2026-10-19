@@ -19,6 +19,8 @@ from .spec import MM_PER_UNIT, PartSpec
 
 STEEL = (0.62, 0.64, 0.67)
 NYLON = (0.92, 0.9, 0.84)
+SATIN = (0.55, 0.57, 0.6)
+RUBBER = (0.08, 0.08, 0.09)
 
 
 @dataclass
@@ -128,7 +130,69 @@ def washer(spec: PartSpec) -> Generated:
     )
 
 
-GENERATORS = {"bolt": bolt, "nut": nut, "washer": washer}
+def torque_wrench(spec: PartSpec) -> Generated:
+    """Kunci torsi tipe klik, gagang mikrometer (bentuk mengikuti referensi fwild, Sketchfab).
+
+    Bersumber: panjang total, tinggi kepala, ukuran square drive. Proporsi lain (`extras.design`)
+    adalah nilai desain visual dalam fraksi panjang total, bukan data teknis.
+    Titik asal = pusat square drive di muka kepala. Sumbu panjang = -Z (gagang ke bawah),
+    square drive menonjol ke +Y.
+    """
+    length = spec.mm("overallLength")
+    head_h = spec.mm("headHeight")  # tebal kepala, searah sumbu drive
+    drive = spec.mm("driveSize")
+    d = spec.extras["design"]
+    f = lambda key: d[key] * length  # noqa: E731 - fraksi panjang -> mm
+
+    head_top = f("headTop")              # ujung kepala di atas pusat drive
+    head_w = f("headWidth")
+    neck_z, tube_z, barrel_z, ring_z, grip_z = (-f(k) for k in ("neckEnd", "tubeEnd", "barrelEnd", "ringEnd", "gripEnd"))
+    bottom = head_top - length           # ujung tutup gagang
+    r_tube, r_barrel, r_grip = f("tubeRadius"), f("barrelRadius"), f("gripRadius")
+
+    # Kepala ratchet: blok membulat, square drive keluar dari muka +Y
+    head = (
+        cq.Workplane("XZ").center(0, (head_top + neck_z) / 2)
+        .rect(head_w, head_top - neck_z).extrude(head_h / 2, both=True)
+        .edges("|Y").fillet(head_w * 0.45)
+        .edges(">Y or <Y").chamfer(head_h * 0.08)
+    )
+    lever = cq.Workplane("XZ").workplane(offset=head_h / 2).center(0, head_top * 0.15).circle(head_w * 0.16).extrude(-1.2)
+    tube = (
+        cq.Workplane("XY").workplane(offset=neck_z).circle(r_tube * 0.85)
+        .workplane(offset=tube_z - neck_z).circle(r_tube).loft()
+    )
+    body = head.union(tube).union(cq.Workplane("XY").workplane(offset=tube_z).circle(r_tube).extrude(barrel_z - tube_z))
+    badge = cq.Workplane("YZ").workplane(offset=r_tube - 0.4).center(0, f("badgeAt") * -1).circle(r_tube * 0.45).extrude(1.0)
+
+    square = (
+        cq.Workplane("XZ").workplane(offset=-head_h / 2).rect(drive, drive).extrude(-drive * 0.95)
+        .edges("|Y").chamfer(drive * 0.08)
+    )
+    barrel = cq.Workplane("XY").workplane(offset=ring_z).circle(r_barrel).extrude(barrel_z - ring_z)
+    ring = cq.Workplane("XY").workplane(offset=grip_z).circle(r_grip * 0.9).extrude(ring_z - grip_z)
+    grip = cq.Workplane("XY").workplane(offset=bottom + f("capLength")).circle(r_grip).extrude(grip_z - bottom - f("capLength")).edges().chamfer(1.2)
+    cap = cq.Workplane("XY").workplane(offset=bottom).circle(r_grip * 0.85).extrude(f("capLength")).faces("<Z").chamfer(1.0)
+
+    return Generated(
+        meshes=[
+            Mesh("body", body.union(lever), STEEL),
+            Mesh("badge", badge, (0.55, 0.12, 0.1)),
+            Mesh("drive", square, STEEL),
+            Mesh("barrel", barrel, SATIN),   # area skala mikrometer (tekstur skala dari game)
+            Mesh("lockRing", ring, RUBBER),
+            Mesh("grip", grip, RUBBER),      # knurl via normal map
+            Mesh("endCap", cap, RUBBER),
+        ],
+        attach={
+            "drive": {"position": [0, head_h / 2 + drive * 0.95, 0], "axis": [0, 1, 0]},
+            "gripCenter": {"position": [0, 0, (grip_z + bottom) / 2], "axis": [0, 0, -1]},
+            "scaleEdge": {"position": [0, 0, ring_z], "axis": [0, 0, -1]},
+        },
+    )
+
+
+GENERATORS = {"bolt": bolt, "nut": nut, "washer": washer, "torque_wrench": torque_wrench}
 
 
 def generate(spec: PartSpec) -> Generated:

@@ -102,6 +102,12 @@ Sistem tidak pernah menolak urutan yang salah. Pemain sudah punya handbook step-
 
 Aturan checklist: dicentang sendiri oleh pemain sebagai sign-off, dan mencentang tidak memverifikasi apa pun. Kalau checklist memvalidasi otomatis, defect akan bocor sebelum tes dan inti game hilang.
 
+Aturan logika fisik perakitan (berlaku untuk semua part, diputuskan 19 Oktober 2026):
+
+- **Part yang masih diikat pengencang tidak bisa diangkat.** Selama masih ada mur atau baut yang terpasang, part terkunci. Pemain harus mengendurkan lalu melepas semua pengencangnya dulu. Ini bukan validasi sistem, tapi batasan fisik, sama seperti flange yang tidak cocok dengan pad lain.
+- **Mur dipasang sendiri oleh pemain.** Setelah part duduk di pad, ring dan mur dipasang di tiap stud (kencang tangan), baru dikencangkan dengan kunci torsi.
+- **Pengencangan dengan kunci torsi memakai interface close-up terpisah**, bukan langsung di scene 3D. Alurnya: mur diputar sampai duduk (run-down), lalu tarikan menaikkan torsi sampai kunci berbunyi klik di nilai setelan dial. Kalau tetap ditarik setelah klik, torsi terus naik (over-torque), seperti kunci torsi tipe klik sungguhan. Interface-nya adalah alat itu sendiri, dalam bentuk hybrid: kunci, mur, dan ayunan gagang dirender 3D dari model asli (kamera lurus di sumbu stud, hanya kunci, mur, stud, dan pad yang ditampilkan), sedangkan skala mikrometer (barrel + thimble) tampil sebagai gambar tajam di kaca pembesar dengan garis penunjuk ke barrel 3D. Hasil ditulis di slip log torsi. Seperti kunci tipe klik asli, tidak ada penunjuk torsi aktual: pemain hanya tahu setelan dan apakah terasa klik. Torsi sebenarnya disimpan diam-diam dan baru berpengaruh saat tes (defect under/over-torque).
+
 Akurasi part dibagi tiga tier. Bentuk boleh disederhanakan, tapi data (ukuran, torsi, jumlah, urutan) harus selalu benar.
 
 | Tier | Contoh part | Akurasi bentuk | Akurasi data |
@@ -196,6 +202,8 @@ Diputuskan 19 Oktober 2026 lewat brainstorming. Mockup ada di canvas "AES — UI
   - Saat lensa x-ray aktif, hanya komponen dalam mesin yang bisa di-hover dan dipilih.
   - Kunci torsi berupa alat 3D: tergantung di shadow board saat tidak dipakai, berpindah ke titik kerja saat dipakai.
   - Pencahayaan memakai satuan fisik (lumen, lux, falloff kuadrat jarak) dan material PBR sesuai bahan aslinya.
+  - Engineer memakai headlamp mekanik (280 lm, nilai output headlamp kerja bersumber; sudut sorot masih placeholder) yang menempel di kepala dan bisa dinyalakan atau dimatikan (H). Area kerja yang membelakangi lampu kerja, seperti pad aksesori di belakang mesin, diterangi headlamp ini, bukan lampu khusus UI.
+  - Part Tier 2 diambil dari meja part lalu dipasang ke pad lewat bayangan pemasangan; pad dengan flange yang tidak cocok menolak part.
   - Review visual berikutnya dilakukan setelah aset 3D dari pipeline tersedia.
 
 ## Arsitektur teknis

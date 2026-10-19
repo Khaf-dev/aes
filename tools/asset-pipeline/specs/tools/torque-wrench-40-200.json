@@ -1,0 +1,39 @@
+{
+  "id": "tool.torque-wrench.40-200",
+  "standard": "Kunci torsi klik 3/8 in, 40-200 in-lb",
+  "kind": "torque_wrench",
+  "name": "Kunci torsi tipe klik 3/8 in · 40–200 in-lb",
+  "tier": 3,
+  "units": "in",
+  "dims": {
+    "overallLength": { "value": 11.328 },
+    "headHeight": { "value": 0.875 },
+    "driveSize": { "value": 0.375 },
+    "rangeMin": { "value": 40 },
+    "rangeMax": { "value": 200 },
+    "graduation": { "value": 1 }
+  },
+  "extras": {
+    "design": {
+      "note": "Proporsi visual (fraksi panjang total), mengikuti referensi model 'Torque Wrench 40 200 In lbs' karya fwild (Sketchfab, CC BY). Hanya bentuk yang diacu; mesh dibuat sendiri.",
+      "headTop": 0.045,
+      "headWidth": 0.088,
+      "neckEnd": 0.06,
+      "tubeEnd": 0.5,
+      "badgeAt": 0.3,
+      "barrelEnd": 0.6,
+      "ringEnd": 0.625,
+      "gripEnd": 0.64,
+      "capLength": 0.025,
+      "tubeRadius": 0.034,
+      "barrelRadius": 0.04,
+      "gripRadius": 0.055
+    }
+  },
+  "source": {
+    "url": "https://shop.butlerbros.com/catalogue/product/1195504",
+    "kind": "katalog distributor (Proto 3/8 in ratcheting head micrometer torque wrench 40-200 in-lb)",
+    "verified": false,
+    "note": "Panjang total 11 21/64 in, tinggi kepala 7/8 in, skala 1 in-lb. Belum dicocokkan ke lembar data pabrikan."
+  }
+}
