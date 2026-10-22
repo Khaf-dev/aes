@@ -192,7 +192,48 @@ def torque_wrench(spec: PartSpec) -> Generated:
     )
 
 
-GENERATORS = {"bolt": bolt, "nut": nut, "washer": washer, "torque_wrench": torque_wrench}
+def alternator(spec: PartSpec) -> Generated:
+    """Alternator penggerak gear, bentuk dasar sementara (placeholder) sampai mesh Tier 2 tersedia.
+
+    Konvensi sama dengan part Tier 2: titik asal = pusat muka flange, poros penggerak ke +X (masuk ke mesin),
+    badan ke -X, telinga flange di ±Y (CAD) = ±Z runtime, terminal output di atas (+Z CAD = +Y runtime).
+    """
+    length, dia = spec.mm("bodyLength"), spec.mm("bodyDiameter")
+    flange_d, flange_t = spec.mm("flangeDiameter"), spec.mm("flangeThickness")
+    ear_y, ear_r = spec.mm("earSpacing") / 2, spec.mm("earRadius")
+    shaft_d, shaft_l = spec.mm("shaftDiameter"), spec.mm("shaftLength")
+    x_axis = lambda: cq.Workplane("YZ")  # noqa: E731 - normal +X
+
+    flange = x_axis().circle(flange_d / 2).extrude(-flange_t)
+    ears = x_axis().pushPoints([(-ear_y, 0), (ear_y, 0)]).circle(ear_r).extrude(-flange_t)
+    web = x_axis().rect(2 * ear_y, ear_r * 1.6).extrude(-flange_t)
+    holes = x_axis().pushPoints([(-ear_y, 0), (ear_y, 0)]).circle(ear_r * 0.45).extrude(-flange_t)
+    flange = flange.union(ears).union(web).cut(holes)
+
+    body = x_axis().workplane(offset=-flange_t).circle(dia / 2).extrude(-(length - flange_t)).edges("<X").chamfer(6)
+    for i in range(5):  # sirip pendingin
+        x0 = -flange_t - 18 - i * 14
+        body = body.cut(x_axis().workplane(offset=x0).circle(dia / 2 + 1).circle(dia / 2 - 3).extrude(-4))
+    shaft = x_axis().circle(shaft_d / 2).extrude(shaft_l).faces(">X").chamfer(1.5)
+    term_x = -length + 22
+    terminal = cq.Workplane("XY").workplane(offset=dia / 2 - 2).center(term_x, 0).circle(5).extrude(16)
+
+    return Generated(
+        meshes=[
+            Mesh("flange", flange, SATIN),
+            Mesh("body", body, (0.22, 0.24, 0.27)),
+            Mesh("driveShaft", shaft, STEEL),
+            Mesh("outputTerminal", terminal, (0.69, 0.55, 0.34)),
+        ],
+        attach={
+            "mountFace": {"position": [0, 0, 0], "normal": [1, 0, 0]},
+            "shaftTip": {"position": [shaft_l, 0, 0], "normal": [1, 0, 0]},
+            "outputTerminal": {"position": [term_x, 0, dia / 2 + 14], "normal": [0, 0, 1]},
+        },
+    )
+
+
+GENERATORS = {"bolt": bolt, "nut": nut, "washer": washer, "torque_wrench": torque_wrench, "alternator": alternator}
 
 
 def generate(spec: PartSpec) -> Generated:

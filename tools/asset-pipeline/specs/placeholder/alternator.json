@@ -1,0 +1,25 @@
+{
+  "id": "acc.alternator.mk1",
+  "standard": "Placeholder visual, bukan data teknis",
+  "kind": "alternator",
+  "name": "Alternator (placeholder AES)",
+  "tier": 2,
+  "units": "mm",
+  "placeholder": true,
+  "dims": {
+    "bodyLength": { "value": 150 },
+    "bodyDiameter": { "value": 110 },
+    "flangeDiameter": { "value": 90 },
+    "flangeThickness": { "value": 8 },
+    "earSpacing": { "value": 100 },
+    "earRadius": { "value": 12 },
+    "shaftDiameter": { "value": 22 },
+    "shaftLength": { "value": 18 }
+  },
+  "source": {
+    "url": "",
+    "kind": "placeholder",
+    "verified": false,
+    "note": "Mesh sementara karena kuota TRELLIS.2 habis. Semua ukuran hanya visual; ganti dengan mesh Tier 2 dari assets-src/tier2/alternator dan dimensi bersumber."
+  }
+}

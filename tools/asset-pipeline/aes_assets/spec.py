@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 MM_PER_UNIT = {"in": 25.4, "mm": 1.0}
-KINDS = {"bolt", "nut", "washer", "torque_wrench"}
+KINDS = {"bolt", "nut", "washer", "torque_wrench", "alternator"}
 
 
 class SpecError(ValueError):
@@ -84,7 +84,8 @@ def load_spec(path: Path) -> PartSpec:
     if raw["units"] not in MM_PER_UNIT:
         raise SpecError(f"{path.name}: satuan '{raw['units']}' tidak didukung")
     src = raw["source"]
-    if not src.get("url"):
+    # Placeholder visual boleh tanpa sumber karena angkanya bukan data teknis (ditandai di metadata)
+    if not src.get("url") and not raw.get("placeholder"):
         raise SpecError(f"{path.name}: dimensi wajib punya sumber (source.url)")
 
     dims = {k: Dimension.parse(k, v) for k, v in raw["dims"].items()}

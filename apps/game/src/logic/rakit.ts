@@ -41,8 +41,8 @@ export interface RakitState {
   readonly parts: Readonly<Record<string, PartStatus>>;
   readonly nuts: Readonly<Record<string, readonly NutState[]>>;
   readonly wires: Readonly<Record<string, readonly Wire[]>>;
-  /** P-lead tersambung ke terminal magneto (per part yang punya P-lead). */
-  readonly pLeads: Readonly<Record<string, boolean>>;
+  /** Kabel tersambung ke terminal part (P-lead magneto, kabel output alternator). */
+  readonly cables: Readonly<Record<string, boolean>>;
   /** Per id langkah (task card). */
   readonly signoff: Readonly<Record<string, Signoff>>;
   readonly held: string | null;
@@ -60,7 +60,7 @@ export function initialRakit(): RakitState {
     parts: Object.fromEntries(PARTS.map((p) => [p.assetId, "staged" as const])),
     nuts: Object.fromEntries(PARTS.map((p) => [p.assetId, p.pad.studs.map(() => EMPTY_NUT)])),
     wires: Object.fromEntries(PARTS.map((p) => [p.assetId, []])),
-    pLeads: Object.fromEntries(PARTS.filter((p) => p.pLead).map((p) => [p.assetId, false])),
+    cables: Object.fromEntries(PARTS.filter((p) => p.cable).map((p) => [p.assetId, false])),
     signoff: {},
     held: null,
   };
@@ -82,8 +82,8 @@ export function pickUp(s: RakitState, partId: string): Outcome {
       toast: { text: `${def.name} masih diikat ${fastened} mur. Kendurkan & lepas murnya dulu (klik mur).`, bad: true },
     };
   }
-  if (s.pLeads[partId]) {
-    return { state: s, toast: { text: `P-lead ${def.label} masih tersambung. Lepas dulu dari terminalnya.`, bad: true } };
+  if (s.cables[partId]) {
+    return { state: s, toast: { text: `${def.cable!.name} ${def.label} masih tersambung. Lepas dulu dari terminalnya.`, bad: true } };
   }
   const wasInstalled = s.parts[partId] === "installed";
   return {
@@ -190,21 +190,21 @@ export function torqueNut(s: RakitState, partId: string, index: number, value: n
   return withNut(s, partId, index, { installed: true, torque: value, log });
 }
 
-/** Klik terminal P-lead di magneto: sambung atau lepas. Hanya bisa saat magneto duduk di pad. */
-export function togglePLead(s: RakitState, partId: string): Outcome {
+/** Klik terminal kabel di part: sambung atau lepas. Hanya bisa saat part duduk di pad. */
+export function toggleCable(s: RakitState, partId: string): Outcome {
   const def = partDef(partId);
-  if (!def.pLead) return { state: s };
+  if (!def.cable) return { state: s };
   if (s.parts[partId] !== "installed") {
-    return { state: s, toast: { text: `Pasang ${def.label} di pad dulu, baru sambungkan P-lead.`, bad: true } };
+    return { state: s, toast: { text: `Pasang ${def.label} di pad dulu, baru sambungkan ${def.cable.name.toLowerCase()}.`, bad: true } };
   }
-  const connected = !s.pLeads[partId];
+  const connected = !s.cables[partId];
   return {
-    state: { ...s, pLeads: { ...s.pLeads, [partId]: connected } },
-    toast: { text: connected ? `P-lead ${def.label} tersambung ke terminalnya.` : `P-lead ${def.label} dilepas.` },
+    state: { ...s, cables: { ...s.cables, [partId]: connected } },
+    toast: { text: connected ? `${def.cable.name} ${def.label} tersambung ke terminalnya.` : `${def.cable.name} ${def.label} dilepas.` },
   };
 }
 
-export type Stage = "install" | "nuts" | "torque" | "wire" | "plead" | "signoff" | "done";
+export type Stage = "install" | "nuts" | "torque" | "wire" | "cable" | "signoff" | "done";
 
 /**
  * Petunjuk strip task card berdasarkan keadaan fisik. Hanya penunjuk arah, bukan validasi:
@@ -212,13 +212,13 @@ export type Stage = "install" | "nuts" | "torque" | "wire" | "plead" | "signoff"
  */
 export function stage(s: RakitState, partId: string, needsWire: boolean): Stage {
   const def = partDef(partId);
-  const cards = [def.stepId, ...(def.pLead ? [def.pLead.stepId] : [])];
+  const cards = [def.stepId, ...(def.cable ? [def.cable.stepId] : [])];
   if (cards.every((id) => s.signoff[id]?.signed)) return "done";
   const nuts = nutsOf(s, partId);
   if (s.parts[partId] !== "installed") return "install";
   if (!nuts.every((n) => n.installed)) return "nuts";
   if (!nuts.every((n) => n.torque !== null)) return "torque";
   if (needsWire && (s.wires[partId] ?? []).length === 0) return "wire";
-  if (def.pLead && !s.pLeads[partId]) return "plead";
+  if (def.cable && !s.cables[partId]) return "cable";
   return "signoff";
 }

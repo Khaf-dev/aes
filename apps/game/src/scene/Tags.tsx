@@ -17,6 +17,7 @@ const TAGS: TagDef[] = [
   { code: "74-10-01", name: "MAGNETO KIRI", line: "Pasang di pad ini", color: "#E8C547", anchor: V(0.53, 1.24, 0.24), length: 0.1, yaw: 0.55 },
   { code: "74-10-02", name: "MAGNETO KANAN", line: "Pasang di pad ini", color: "#E8C547", anchor: V(0.56, 1.25, -0.25), length: 0.1, yaw: -0.55 },
   { code: "80-10-01", name: "STARTER", line: "Pasang di pad ini", color: "#E8C547", anchor: V(0.6, 0.98, -0.2), length: 0.06, yaw: -0.4 },
+  { code: "24-30-05", name: "ALTERNATOR", line: "Pasang di pad ini", color: "#E8C547", anchor: V(0.6, 0.98, 0.21), length: 0.06, yaw: 0.4 },
   { code: "71-20-03", name: "ENGINE MOUNT", line: "Sign-off", color: "#94C474", initials: "RK", anchor: V(0.69, 1.25, 0.24), length: 0.2, yaw: 0.55 },
 ];
 const W = 0.15, H = (W * 300) / 512;

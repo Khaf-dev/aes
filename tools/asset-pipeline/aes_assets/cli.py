@@ -25,6 +25,8 @@ DEFAULT_TOOL_SPECS = HERE / "specs" / "tools"
 DEFAULT_TOOL_OUT = REPO_ROOT / "packages" / "content" / "assets" / "tools"
 DEFAULT_TIER2_SPECS = HERE / "specs" / "tier2"
 DEFAULT_TIER2_OUT = REPO_ROOT / "packages" / "content" / "assets" / "tier2"
+# Bentuk dasar sementara untuk part Tier 2 yang mesh AI-nya belum ada; hasilnya ikut folder Tier 2
+DEFAULT_PLACEHOLDER_SPECS = HERE / "specs" / "placeholder"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -43,13 +45,14 @@ def main(argv: list[str] | None = None) -> int:
     try:
         specs = load_specs(args.specs)
         tools = load_specs(args.tool_specs) if args.tool_specs.exists() else []
+        placeholders = load_specs(DEFAULT_PLACEHOLDER_SPECS) if DEFAULT_PLACEHOLDER_SPECS.exists() else []
         tier2 = [] if args.skip_tier2 else load_tier2_specs(args.tier2_specs, args.repo_root)
     except SpecError as err:
         print(f"Spesifikasi tidak valid: {err}", file=sys.stderr)
         return 1
 
     if args.only:
-        known = {s.id for s in specs} | {s.id for s in tools} | {s.id for s in tier2}
+        known = {s.id for s in specs} | {s.id for s in tools} | {s.id for s in tier2} | {s.id for s in placeholders}
         unknown = set(args.only) - known
         if unknown:
             print(f"ID tidak dikenal: {', '.join(sorted(unknown))}", file=sys.stderr)
@@ -57,10 +60,13 @@ def main(argv: list[str] | None = None) -> int:
         specs = [s for s in specs if s.id in args.only]
         tools = [s for s in tools if s.id in args.only]
         tier2 = [s for s in tier2 if s.id in args.only]
+        placeholders = [s for s in placeholders if s.id in args.only]
 
-    for spec, out in [*((s, args.out) for s in specs), *((s, args.tool_out) for s in tools)]:
+    for spec, out in [
+        *((s, args.out) for s in specs), *((s, args.tool_out) for s in tools), *((s, args.tier2_out) for s in placeholders),
+    ]:
         meta = export_part(spec, generate(spec), out)
-        status = "terverifikasi" if spec.source.verified else "BELUM diverifikasi ke standar resmi"
+        status = "terverifikasi" if spec.source.verified else ("PLACEHOLDER visual" if spec.source.kind == "placeholder" else "BELUM diverifikasi ke standar resmi")
         print(f"{spec.id:24} {meta['triangles']:6d} segitiga  sumber {status}")
 
     for spec in tier2:
@@ -72,7 +78,7 @@ def main(argv: list[str] | None = None) -> int:
         scale = "skala bersumber" if meta["scale"]["verified"] else "skala PLACEHOLDER"
         print(f"{spec.id:24} {meta['triangles']:6d} segitiga  {scale}")
 
-    print(f"Selesai: {len(specs)} hardware, {len(tools)} alat, {len(tier2)} Tier 2")
+    print(f"Selesai: {len(specs)} hardware, {len(tools)} alat, {len(tier2)} Tier 2, {len(placeholders)} placeholder")
     return 0
 
 

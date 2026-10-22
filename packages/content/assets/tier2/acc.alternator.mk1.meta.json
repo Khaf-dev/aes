@@ -1,0 +1,124 @@
+{
+  "id": "acc.alternator.mk1",
+  "standard": "Placeholder visual, bukan data teknis",
+  "name": "Alternator (placeholder AES)",
+  "kind": "alternator",
+  "tier": 2,
+  "model": "acc.alternator.mk1.glb",
+  "units": "m",
+  "upAxis": "Y",
+  "meshes": [
+    "flange",
+    "body",
+    "driveShaft",
+    "outputTerminal"
+  ],
+  "triangles": 6280,
+  "boundingBox": {
+    "min": [
+      -0.150145,
+      -0.055145,
+      -0.062
+    ],
+    "max": [
+      0.018029,
+      0.069003,
+      0.062
+    ]
+  },
+  "attachPoints": {
+    "mountFace": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "normal": [
+        1.0,
+        0.0,
+        0.0
+      ]
+    },
+    "shaftTip": {
+      "position": [
+        0.018,
+        0.0,
+        0.0
+      ],
+      "normal": [
+        1.0,
+        0.0,
+        0.0
+      ]
+    },
+    "outputTerminal": {
+      "position": [
+        -0.128,
+        0.069,
+        0.0
+      ],
+      "normal": [
+        0.0,
+        1.0,
+        0.0
+      ]
+    }
+  },
+  "dimensions": {
+    "bodyLength": {
+      "min": 150.0,
+      "max": 150.0,
+      "nominal": 150.0,
+      "unit": "mm"
+    },
+    "bodyDiameter": {
+      "min": 110.0,
+      "max": 110.0,
+      "nominal": 110.0,
+      "unit": "mm"
+    },
+    "flangeDiameter": {
+      "min": 90.0,
+      "max": 90.0,
+      "nominal": 90.0,
+      "unit": "mm"
+    },
+    "flangeThickness": {
+      "min": 8.0,
+      "max": 8.0,
+      "nominal": 8.0,
+      "unit": "mm"
+    },
+    "earSpacing": {
+      "min": 100.0,
+      "max": 100.0,
+      "nominal": 100.0,
+      "unit": "mm"
+    },
+    "earRadius": {
+      "min": 12.0,
+      "max": 12.0,
+      "nominal": 12.0,
+      "unit": "mm"
+    },
+    "shaftDiameter": {
+      "min": 22.0,
+      "max": 22.0,
+      "nominal": 22.0,
+      "unit": "mm"
+    },
+    "shaftLength": {
+      "min": 18.0,
+      "max": 18.0,
+      "nominal": 18.0,
+      "unit": "mm"
+    }
+  },
+  "source": {
+    "url": "",
+    "kind": "placeholder",
+    "verified": false,
+    "note": "Mesh sementara karena kuota TRELLIS.2 habis. Semua ukuran hanya visual; ganti dengan mesh Tier 2 dari assets-src/tier2/alternator dan dimensi bersumber."
+  },
+  "generator": "aes-asset-pipeline 0.1.0"
+}

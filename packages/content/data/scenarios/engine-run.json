@@ -1,0 +1,6 @@
+{
+  "id": "engine-run",
+  "label": "Mesin hidup: pengisian alternator",
+  "switches": { "sw.master": true, "sw.alternator": true, "sw.engine-run": true, "sw.avionics": true },
+  "mustOperate": ["chg.battery"]
+}

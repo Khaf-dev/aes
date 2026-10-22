@@ -52,6 +52,14 @@ describe("runTest: rakit → tes → investigasi", () => {
     ]);
   });
 
+  it("kabel tidak dipasang karena part prasyaratnya juga tidak dipasang: clue menunjuk prasyarat", () => {
+    const log = { records: idealLog(steps).records.filter((r) => r.stepId !== "24-30-01" && r.stepId !== "24-30-03") };
+    const report = runTest({ design: basicElectrical(), steps, log, scenario: groundPowerUp });
+    const starter = report.findings.find((f) => f.consumerId === "load.starter");
+    expect(starter?.diagnosis.rootCause?.linkId).toBe("w.bus-starter-relay"); // penelusuran tetap dari sisi konsumen
+    expect(starter?.cause).toMatchObject({ stepId: "24-30-01", kind: "missing" });
+  });
+
   it("saklar OFF saat tes bukan kesalahan perakitan", () => {
     const report = runTest({
       design: basicElectrical(),

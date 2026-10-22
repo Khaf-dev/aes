@@ -3,7 +3,7 @@ import { beginPull, clampSetting, openSession, release, tick, type PullState } f
 import { assemblyLog, checklist, handbookEntryFor, handbookTopics, hiddenDefects, STEPS } from "../src/logic/assemblyLog.ts";
 import { runGroundTest } from "../src/logic/groundTest.ts";
 import {
-  cutWire, initialRakit, install, installNut, installWire, pickUp, putBack, removeNut, signOff, stage, toggleCheck, togglePLead, torqueNut,
+  cutWire, initialRakit, install, installNut, installWire, pickUp, putBack, removeNut, signOff, stage, toggleCheck, toggleCable, torqueNut,
 } from "../src/logic/rakit.ts";
 import { PARTS } from "../src/data/parts.ts";
 
@@ -79,8 +79,8 @@ describe("aturan fisik mode rakit", () => {
     expect(stage(s, MAG, false)).toBe("torque");
     s = torqueNut(torqueNut(s, MAG, 0, 60, { setting: 60, feel: "klik" }), MAG, 1, 60, { setting: 60, feel: "klik" });
     expect(stage(s, MAG, true)).toBe("wire");
-    expect(stage(s, MAG, false)).toBe("plead");
-    s = togglePLead(s, MAG).state;
+    expect(stage(s, MAG, false)).toBe("cable");
+    s = toggleCable(s, MAG).state;
     expect(stage(s, MAG, false)).toBe("signoff");
     expect(stage(signOff(s, "74-10-01", 5), MAG, false)).toBe("signoff"); // task card P-lead belum
     expect(stage(signOff(signOff(s, "74-10-01", 5), "74-10-03", 2), MAG, false)).toBe("done");
@@ -119,7 +119,7 @@ describe("jembatan ke sim-core", () => {
 
   it("part di meja = langkah belum dikerjakan; mur tanpa torsi = under-torque per mur", () => {
     expect(hiddenDefects(initialRakit()).map((d) => `${d.stepId} ${d.kind}`)).toEqual([
-      "74-10-01 missing", "74-10-02 missing", "74-10-03 missing", "74-10-04 missing", "80-10-01 missing",
+      "24-30-05 missing", "24-30-06 missing", "74-10-01 missing", "74-10-02 missing", "74-10-03 missing", "74-10-04 missing", "80-10-01 missing",
     ]);
     let s = install(pickUp(initialRakit(), MAG).state, MAG).state;
     s = installNut(installNut(s, MAG, 0).state, MAG, 1).state;
@@ -170,23 +170,41 @@ describe("tes darat", () => {
     ]);
     expect(sheet.runUp.started).toBe(false);
     expect(sheet.untested.join(" ")).toMatch(/Timing/);
+    expect(sheet.untested.join(" ")).toMatch(/Pengisian alternator belum diuji/);
   });
 
-  const STR = "acc.starter.mk1", MAG_R = "acc.magneto.mk1.r";
+  const STR = "acc.starter.mk1", MAG_R = "acc.magneto.mk1.r", ALT = "acc.alternator.mk1";
   const mount = (s: ReturnType<typeof initialRakit>, part: string) => install(pickUp(s, part).state, part).state;
-
-  it("dua magneto + P-lead + starter terpasang: lulus, mag check normal", () => {
+  /** Semua part terpasang dan semua kabel tersambung, kecuali yang disebut. */
+  const assembled = (skip: { alternator?: boolean; altCable?: boolean } = {}) => {
     let s = mount(mount(mount(initialRakit(), STR), MAG), MAG_R);
-    s = togglePLead(togglePLead(s, MAG).state, MAG_R).state;
-    const sheet = runGroundTest(s);
+    s = toggleCable(toggleCable(s, MAG).state, MAG_R).state;
+    if (!skip.alternator) s = mount(s, ALT);
+    if (!skip.alternator && !skip.altCable) s = toggleCable(s, ALT).state;
+    return s;
+  };
+
+  it("semua part + kabel terpasang: lulus, mag check normal, alternator mengisi", () => {
+    const sheet = runGroundTest(assembled());
     expect(sheet.passed).toBe(true);
     expect(sheet.runUp.magCheck.every((c) => c.ok)).toBe(true);
     expect(sheet.runUp.offCheck).toMatch(/mati/);
+    expect(sheet.consumers).toContainEqual(expect.objectContaining({ label: "Pengisian baterai (ammeter) · mesin hidup", ok: true }));
+  });
+
+  it("alternator tidak dipasang: pengisian gagal, ammeter minus, clue 24-30-05", () => {
+    const sheet = runGroundTest(assembled({ alternator: true }));
+    expect(sheet.passed).toBe(false);
+    expect(sheet.findings).toMatchObject([{ consumer: "Pengisian baterai (ammeter)", symptom: expect.stringMatching(/minus/), step: { id: "24-30-05" } }]);
+  });
+
+  it("kabel output alternator lupa disambung: clue 24-30-06", () => {
+    const sheet = runGroundTest(assembled({ altCable: true }));
+    expect(sheet.findings).toMatchObject([{ rootCause: "Kabel output alternator: tidak tersambung", step: { id: "24-30-06" } }]);
   });
 
   it("P-lead kanan lupa disambung: magneto kanan panas, mesin tetap hidup saat kunci OFF", () => {
-    let s = mount(mount(mount(initialRakit(), STR), MAG), MAG_R);
-    s = togglePLead(s, MAG).state;
+    const s = toggleCable(assembled(), MAG_R).state;
     const sheet = runGroundTest(s);
     expect(sheet.passed).toBe(false);
     expect(sheet.runUp.offCheck).toMatch(/TETAP HIDUP/);

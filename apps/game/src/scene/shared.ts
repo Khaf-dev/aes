@@ -52,7 +52,7 @@ export type Pick =
   | { readonly kind: "stud"; readonly part: string; readonly index: number; readonly code: string; readonly name: string }
   | { readonly kind: "nut"; readonly part: string; readonly index: number; readonly code: string; readonly name: string }
   | { readonly kind: "tool"; readonly code: string; readonly name: string }
-  /** Terminal P-lead di magneto: sambung/lepas kabel ground magneto. */
+  /** Terminal kabel di part (P-lead magneto, output alternator): sambung/lepas. */
   | { readonly kind: "terminal"; readonly part: string; readonly code: string; readonly name: string }
   /** Meja kerja: membuka mode dokumen di task card yang paling relevan. */
   | { readonly kind: "bench"; readonly code: string; readonly name: string }

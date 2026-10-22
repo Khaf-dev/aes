@@ -163,3 +163,17 @@ def test_kunci_torsi_sesuai_dimensi_bersumber(tmp_path):
     assert size[1] == pytest.approx(s.mm("overallLength") * MM_TO_M, abs=1e-4), "sumbu panjang = Y"
     assert meta["attachPoints"]["drive"]["axis"] == [0, 0, -1], "square drive mengarah -z (masuk ke mur)"
     assert 0 < meta["triangles"] <= TOOL_TRIANGLE_BUDGET
+
+
+def test_alternator_placeholder_siap_dipasang_seperti_part_tier2(tmp_path):
+    spec = load_spec(Path(__file__).resolve().parent.parent / "specs" / "placeholder" / "alternator.json")
+    meta = export_part(spec, generate(spec), tmp_path)
+    mount = meta["attachPoints"]["mountFace"]
+    assert mount == {"position": [0.0, 0.0, 0.0], "normal": [1.0, 0.0, 0.0]}
+    bb = meta["boundingBox"]
+    assert bb["min"][0] == pytest.approx(-0.150, abs=1e-3)  # badan ke -x, poros ke +x
+    assert bb["max"][0] == pytest.approx(0.018, abs=1e-3)
+    assert meta["attachPoints"]["outputTerminal"]["position"][1] > 0.055  # terminal di atas badan (+Y)
+    assert bb["max"][2] == pytest.approx(0.062, abs=1e-3)  # telinga flange di ±Z runtime, sejajar stud pad
+    assert meta["source"]["kind"] == "placeholder" and meta["source"]["verified"] is False
+    assert meta["triangles"] <= 30000

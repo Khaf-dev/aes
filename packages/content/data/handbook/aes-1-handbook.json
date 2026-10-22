@@ -98,6 +98,32 @@
       ]
     },
     {
+      "id": "hb.alternator",
+      "title": "Alternator",
+      "stepId": "24-30-05",
+      "about": [
+        { "text": "Alternator yang diputar mesin memasok listrik ke seluruh sistem kelistrikan dan menjaga muatan baterai tetap cukup.", "source": "faa-phak-ch7", "ref": "hlm. 7-31" },
+        { "text": "Dibanding generator DC, alternator tetap menghasilkan arus yang cukup untuk seluruh sistem walau putaran mesin rendah.", "source": "faa-phak-ch7", "ref": "hlm. 7-31" },
+        { "text": "Pesawat umumnya memakai sistem listrik DC 14 atau 28 volt. Alternator bekerja sedikit di atas tegangan baterai supaya bisa mengisinya, misalnya baterai 12 volt diisi sistem sekitar 14 volt.", "source": "faa-phak-ch7", "ref": "hlm. 7-31 sampai 7-32" }
+      ],
+      "notes": [
+        { "level": "NOTE", "text": "Baterai hanya cadangan terbatas kalau alternator gagal. Selama alternator tidak mengisi, seluruh beban listrik ditanggung baterai.", "source": "faa-phak-ch7", "ref": "hlm. 7-31 sampai 7-32" },
+        { "level": "NOTE", "text": "Regulator tegangan mengatur laju pengisian ke baterai.", "source": "faa-phak-ch7", "ref": "hlm. 7-32" }
+      ]
+    },
+    {
+      "id": "hb.alternator-output",
+      "title": "Kabel output alternator",
+      "stepId": "24-30-06",
+      "about": [
+        { "text": "Kabel output membawa arus alternator ke sistem listrik. Master switch punya dua bagian: ALT untuk alternator dan BAT untuk baterai. Bagian ALT bisa dimatikan untuk memisahkan alternator yang rusak dari sistem.", "source": "faa-phak-ch7", "ref": "hlm. 7-32, Gambar 7-33" }
+      ],
+      "notes": [
+        { "level": "NOTE", "text": "Cek pengisian dengan ammeter saat mesin hidup. Jarum di sisi plus menunjukkan laju pengisian baterai. Minus berarti arus yang diambil dari baterai lebih besar daripada yang diisi ulang.", "source": "faa-phak-ch7", "ref": "hlm. 7-32" },
+        { "level": "CAUTION", "text": "Jarum ammeter mentok di minus menandakan alternator bermasalah. Jarum mentok di plus menandakan regulator bermasalah.", "source": "faa-phak-ch7", "ref": "hlm. 7-32" }
+      ]
+    },
+    {
       "id": "hb.torque",
       "title": "Mengencangkan dengan kunci torsi",
       "action": "torque",

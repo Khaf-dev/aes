@@ -67,7 +67,7 @@ interface GameState {
   installOnPad(padFor: string): void;
   clickStud(nut: NutRef): void;
   clickNut(nut: NutRef): void;
-  togglePLead(part: string): void;
+  toggleCable(part: string): void;
   setTorqueMode(on: boolean): void;
   setWireMode(on: boolean): void;
   wireClickNut(nut: NutRef): void;
@@ -132,7 +132,7 @@ export const useGame = create<GameState>()((set, get) => {
     installOnPad: (padFor) => apply(rakit.install(get().rakit, padFor)),
     clickStud: ({ part, index }) => apply(rakit.installNut(get().rakit, part, index), part),
     clickNut: ({ part, index }) => apply(rakit.removeNut(get().rakit, part, index), part),
-    togglePLead: (part) => apply(rakit.togglePLead(get().rakit, part), part),
+    toggleCable: (part) => apply(rakit.toggleCable(get().rakit, part), part),
 
     setTorqueMode: (on) => {
       const first = on ? firstInstalledNut(get().rakit) : null;
@@ -160,7 +160,7 @@ export const useGame = create<GameState>()((set, get) => {
     openBench: () => {
       const { rakit: s, focusPart } = get();
       const focus = partDef(focusPart);
-      const mine = [focus.stepId, ...(focus.pLead ? [focus.pLead.stepId] : [])];
+      const mine = [focus.stepId, ...(focus.cable ? [focus.cable.stepId] : [])];
       const unsigned = (id: string) => !s.signoff[id]?.signed;
       get().openDocument(mine.find(unsigned) ?? PLAYABLE_STEP_IDS.find(unsigned) ?? mine[0]!);
     },

@@ -25,8 +25,11 @@ export interface PartDef {
   readonly yaw: number;
   /** Model GLB dari asset pipeline bila berbeda dari `assetId` (magneto kiri & kanan memakai model yang sama). */
   readonly model?: string;
-  /** Langkah sambung P-lead magneto (kabel ground magneto ke kunci kontak). */
-  readonly pLead?: { readonly stepId: string; readonly contentId: string };
+  /**
+   * Kabel ke terminal di part, disambung sebagai task card tersendiri (P-lead magneto, kabel output alternator).
+   * `terminal` = posisi terminal relatif muka pad: [x keluar dari pad, y di atas pusat pad] (m).
+   */
+  readonly cable?: { readonly stepId: string; readonly contentId: string; readonly name: string; readonly terminal: readonly [x: number, y: number] };
 }
 
 /** Muka pad di x = 0,52 (normal +x), di belakang gearbox aksesori. */
@@ -42,7 +45,7 @@ export const PARTS: readonly PartDef[] = [
     pad: { code: "74-10-01", name: "Pad magneto kiri · titik pasang", y: 0.1, z: 0.09, studs: [-0.056, 0.056], nutX: 0.016 },
     rest: [0.13, 0.96],
     yaw: 0.35,
-    pLead: { stepId: "74-10-03", contentId: "ele.p-lead.left" },
+    cable: { stepId: "74-10-03", contentId: "ele.p-lead.left", name: "P-lead", terminal: [0.15, 0.035] },
   },
   {
     // Pad kanan dicerminkan dari pad kiri terhadap bidang tengah mesin (z = 0); posisi belum bersumber.
@@ -55,7 +58,7 @@ export const PARTS: readonly PartDef[] = [
     pad: { code: "74-10-02", name: "Pad magneto kanan · titik pasang", y: 0.1, z: -0.09, studs: [-0.056, 0.056], nutX: 0.016 },
     rest: [0.24, 0.79],
     yaw: 0.2,
-    pLead: { stepId: "74-10-04", contentId: "ele.p-lead.right" },
+    cable: { stepId: "74-10-04", contentId: "ele.p-lead.right", name: "P-lead", terminal: [0.15, 0.035] },
   },
   {
     assetId: "acc.starter.mk1",
@@ -67,6 +70,19 @@ export const PARTS: readonly PartDef[] = [
     rest: [0.5, 0.8],
     yaw: -0.25,
   },
+  {
+    // Alternator penggerak gear di pad aksesori (desain AES-1); model masih placeholder pipeline, posisi pad belum bersumber.
+    assetId: "acc.alternator.mk1",
+    contentId: "ele.alternator",
+    stepId: "24-30-05",
+    name: "Alternator",
+    label: "alternator",
+    // studs/nutX dari spesifikasi placeholder: jarak telinga 100 mm, tebal flange 8 mm
+    pad: { code: "24-30-05", name: "Pad alternator · titik pasang", y: -0.06, z: 0.085, studs: [-0.05, 0.05], nutX: 0.008 },
+    rest: [0.5, 0.97],
+    yaw: 0.3,
+    cable: { stepId: "24-30-06", contentId: "ele.cable.alternator-output", name: "Kabel output", terminal: [0.128, 0.069] },
+  },
 ];
 
 export const partDef = (assetId: string): PartDef => {
@@ -75,5 +91,5 @@ export const partDef = (assetId: string): PartDef => {
   return def;
 };
 
-/** Semua langkah yang dikerjakan pemain di hanggar (pasang part + sambung P-lead). */
-export const PLAYABLE_STEP_IDS: readonly string[] = PARTS.flatMap((p) => [p.stepId, ...(p.pLead ? [p.pLead.stepId] : [])]);
+/** Semua langkah yang dikerjakan pemain di hanggar (pasang part + sambung kabel terminal). */
+export const PLAYABLE_STEP_IDS: readonly string[] = PARTS.flatMap((p) => [p.stepId, ...(p.cable ? [p.cable.stepId] : [])]);

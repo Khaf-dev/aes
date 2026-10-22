@@ -6,7 +6,13 @@ Dua jalur, satu format hasil (GLB dalam meter, Y-up, plus `<id>.meta.json`):
 Tier 3  specs/hardware/*.json -> CadQuery (B-rep) ------------------> packages/content/assets/hardware/
 Alat    specs/tools/*.json    -> CadQuery (B-rep) ------------------> packages/content/assets/tools/
 Tier 2  specs/tier2/*.json    -> mesh AI mentah (assets-src/) -> bake -> packages/content/assets/tier2/
+Sementara specs/placeholder/*.json -> CadQuery (bentuk dasar) -------> packages/content/assets/tier2/
 ```
+
+`specs/placeholder/` dipakai untuk part Tier 2 yang mesh AI-nya belum ada (misalnya kuota generator
+habis). Konvensinya sama dengan Tier 2 (titik asal di muka flange, metadata `attachPoints.mountFace`),
+jadi game tidak perlu diubah saat mesh asli menggantikannya. Ukurannya hanya visual: spesifikasi
+boleh tanpa `source.url` asal ada `"placeholder": true`, dan metadata menandai `source.kind = "placeholder"`.
 
 - **Tier 3** (baut, mur, ring, nanti pipa, bracket, klem): model parametrik dari
   dimensi bersumber.

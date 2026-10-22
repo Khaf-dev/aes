@@ -15,7 +15,7 @@ const STAGE_TEXT: Record<Stage, string> = {
   nuts: "Pasang ring & mur di stud (klik stud)",
   torque: "Kencangkan mur pengikat (T: kunci torsi)",
   wire: "Pasang safety wire (W: tang safety wire)",
-  plead: "Sambungkan P-lead (klik terminal di belakang magneto)",
+  cable: "Sambungkan {cable} (klik terminal di part)",
   signoff: "Sign-off task card di meja kerja",
   done: "Task card sudah di-sign-off",
 };
@@ -25,9 +25,9 @@ function TaskStrip() {
   const def = partDef(focusPart);
   const needsWire = requiresWire(def.stepId);
   const current = useGame((s) => stage(s.rakit, s.focusPart, needsWire));
-  const order: Stage[] = ["install", "nuts", "torque", ...(needsWire ? ["wire" as const] : []), ...(def.pLead ? ["plead" as const] : []), "signoff"];
+  const order: Stage[] = ["install", "nuts", "torque", ...(needsWire ? ["wire" as const] : []), ...(def.cable ? ["cable" as const] : []), "signoff"];
   const code = current === "done" ? `TC ${def.stepId} · SELESAI` : `TC ${def.stepId} · LANGKAH ${order.indexOf(current) + 1} / ${order.length}`;
-  const text = STAGE_TEXT[current].replace("{part}", def.name.toLowerCase());
+  const text = STAGE_TEXT[current].replace("{part}", def.name.toLowerCase()).replace("{cable}", def.cable?.name.toLowerCase() ?? "kabel");
   return (
     <div className="strip" role="note" aria-live="polite">
       <b>{code}</b>

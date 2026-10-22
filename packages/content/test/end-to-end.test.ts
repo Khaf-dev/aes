@@ -9,11 +9,12 @@ function aircraft(): Aircraft {
   return result.value;
 }
 
-function groundPowerUp(a: Aircraft) {
-  const scenario = a.scenarios.find((s) => s.id === "ground-power-up");
-  if (scenario === undefined) throw new Error("skenario ground-power-up tidak ada");
+function scenarioOf(a: Aircraft, id: string) {
+  const scenario = a.scenarios.find((s) => s.id === id);
+  if (scenario === undefined) throw new Error(`skenario ${id} tidak ada`);
   return scenario;
 }
+const groundPowerUp = (a: Aircraft) => scenarioOf(a, "ground-power-up");
 
 describe("ujung ke ujung: data konten → sim-core", () => {
   it("perakitan sempurna lulus ground power-up", () => {
@@ -45,5 +46,35 @@ describe("ujung ke ujung: data konten → sim-core", () => {
         cause: { stepId: "24-30-02", kind: "underTorque", detail: "Torsi tidak diterapkan", signedOff: true },
       },
     ]);
+  });
+});
+
+describe("mesin hidup: pengisian alternator", () => {
+  it("alternator terpasang benar: baterai terisi, bus dipasok alternator", () => {
+    const a = aircraft();
+    const report = runTest({ design: a.network, steps: a.steps, log: idealLog(a.steps), scenario: scenarioOf(a, "engine-run") });
+    expect(report.passed).toBe(true);
+    const radio = report.consumers.find((c) => c.consumerId === "load.radio")!;
+    expect(radio.voltage).toBeGreaterThan(24); // dipasok alternator 28 V, bukan baterai 24 V
+  });
+
+  it("kabel output tidak disambung: pengisian gagal dan laporan menunjuk 24-30-06", () => {
+    const a = aircraft();
+    const log: AssemblyLog = { records: idealLog(a.steps).records.filter((r) => r.stepId !== "24-30-06") };
+    const report = runTest({ design: a.network, steps: a.steps, log, scenario: scenarioOf(a, "engine-run") });
+    expect(report.passed).toBe(false);
+    expect(report.findings).toMatchObject([
+      {
+        consumerId: "chg.battery",
+        diagnosis: { status: "unpowered", rootCause: { label: "Kabel output alternator", reason: "missing" } },
+        cause: { stepId: "24-30-06", kind: "missing" },
+      },
+    ]);
+  });
+
+  it("ground power-up tidak terpengaruh alternator (mesin belum hidup)", () => {
+    const a = aircraft();
+    const log: AssemblyLog = { records: idealLog(a.steps).records.filter((r) => !["24-30-05", "24-30-06"].includes(r.stepId)) };
+    expect(runTest({ design: a.network, steps: a.steps, log, scenario: groundPowerUp(a) }).passed).toBe(true);
   });
 });

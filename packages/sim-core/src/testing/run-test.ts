@@ -73,6 +73,17 @@ export function runTest(input: TestInput): TestReport {
     network = setSwitch(network, linkId, closed);
   }
 
+  // Langkah yang tidak dikerjakan karena prasyaratnya juga tidak dikerjakan (kabel ke part yang belum dipasang):
+  // akar masalahnya prasyarat itu, bukan langkah hilirnya.
+  const byId = new Map(steps.map((s) => [s.id, s]));
+  const upstream = (d: Defect): Defect => {
+    if (d.kind !== "missing") return d;
+    const prereq = byId.get(d.stepId)?.requires
+      .map((id) => defects.find((x) => x.stepId === id && x.kind === "missing"))
+      .find((x) => x !== undefined);
+    return prereq ? upstream(prereq) : d;
+  };
+
   const findings: Finding[] = [];
   for (const consumerId of scenario.mustOperate) {
     const diagnosis = diagnose(network, consumerId);
@@ -83,7 +94,8 @@ export function runTest(input: TestInput): TestReport {
       root === null || root.reason === "switchOpen"
         ? null
         : (attributed.find((a) => a.fault.linkId === root.linkId)?.defect ?? null);
-    findings.push({ consumerId, diagnosis, cause });
+    const rootDefect = cause && upstream(cause);
+    findings.push({ consumerId, diagnosis, cause: rootDefect });
   }
 
   return {

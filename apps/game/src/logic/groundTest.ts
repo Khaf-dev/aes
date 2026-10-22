@@ -3,7 +3,7 @@
  * Langkah yang belum bisa dirakit di hanggar (ATA 24: baterai & kabel) dianggap dikerjakan dengan benar
  * oleh shift sebelumnya, jadi hasil tes murni dari pekerjaan pemain.
  */
-import { runTest, runUp, type Defect, type DefectKind, type MagResult, type PerformedAction, type StepRecord, type StepSpec } from "@aes/sim-core";
+import { runTest, runUp, type Defect, type DefectKind, type MagResult, type PerformedAction, type StepRecord, type StepSpec, type TestReport } from "@aes/sim-core";
 import { PLAYABLE_STEP_IDS } from "../data/parts.ts";
 import { AIRCRAFT, assemblyLog } from "./assemblyLog.ts";
 import type { RakitState } from "./rakit.ts";
@@ -30,6 +30,8 @@ const DEFECT_TEXT: Record<DefectKind, string> = {
   fod: "alat tertinggal di area kerja (FOD)",
 };
 const REASON_TEXT = { missing: "tidak tersambung", highResistance: "hambatan berlebih", switchOpen: "saklar terbuka" } as const;
+/** Gejala pengisian gagal seperti terbaca di ammeter (FAA PHAK hlm. 7-32). */
+const CHARGE_SYMPTOM = "ammeter di sisi minus: baterai tidak diisi, seluruh beban ditanggung baterai";
 
 /** Pekerjaan shift sebelumnya: semua aksi dikerjakan seperti spesifikasi dan task card ditandatangani. */
 function priorShiftRecord(step: StepSpec): StepRecord {
@@ -74,17 +76,18 @@ export interface TestSheet {
 /** Alat di luar shadow board saat tes dimulai, dengan langkah tempat alat itu terakhir dipakai. */
 export type ToolsOut = readonly { readonly tool: string; readonly stepId: string }[];
 
+const scenarioOf = (id: string) => {
+  const scenario = AIRCRAFT.scenarios.find((x) => x.id === id);
+  if (!scenario) throw new Error(`Skenario ${id} tidak ada di data konten`);
+  return scenario;
+};
+
 export function runGroundTest(s: RakitState, toolsOut: ToolsOut = []): TestSheet {
-  const scenario = AIRCRAFT.scenarios.find((x) => x.id === "ground-power-up");
-  if (!scenario) throw new Error("Skenario ground-power-up tidak ada di data konten");
+  const scenario = scenarioOf("ground-power-up");
   const playable = new Set(PLAYABLE_STEP_IDS);
   const prior = AIRCRAFT.steps.filter((step) => !playable.has(step.id)).map(priorShiftRecord);
-  const report = runTest({
-    design: AIRCRAFT.network,
-    steps: AIRCRAFT.steps,
-    log: { records: [...prior, ...assemblyLog(s).records], toolsOut },
-    scenario,
-  });
+  const log = { records: [...prior, ...assemblyLog(s).records], toolsOut };
+  const report = runTest({ design: AIRCRAFT.network, steps: AIRCRAFT.steps, log, scenario });
 
   const label = (id: string) => AIRCRAFT.network.nodes.find((n) => n.id === id)?.label ?? id;
   const clue = (d: Defect | null): Clue | null => {
@@ -96,10 +99,29 @@ export function runGroundTest(s: RakitState, toolsOut: ToolsOut = []): TestSheet
   const magnetos = AIRCRAFT.ignition.magnetos;
   const ign = runUp(magnetos, report.defects, starterOk);
   const magLabel = (id: string) => magnetos.find((m) => m.id === id)?.label ?? id;
+  // Pengisian alternator hanya bisa diuji setelah mesin hidup
+  const engineRun = ign.started ? scenarioOf("engine-run") : null;
+  const charging = engineRun ? runTest({ design: AIRCRAFT.network, steps: AIRCRAFT.steps, log, scenario: engineRun }) : null;
+
+  const consumersOf = (rep: TestReport, must: readonly string[], suffix = "") => rep.consumers
+    .filter((c) => must.includes(c.consumerId))
+    .map((c) => ({ label: label(c.consumerId) + suffix, ok: c.status === "ok", voltage: c.voltage }));
+  const findingsOf = (rep: TestReport) => rep.findings.map((f) => {
+    const state = rep.consumers.find((c) => c.consumerId === f.consumerId);
+    return {
+      consumer: label(f.consumerId),
+      symptom: f.consumerId === "chg.battery" ? CHARGE_SYMPTOM
+        : f.diagnosis.status === "unpowered" ? "tidak mendapat listrik"
+        : `tegangan turun ke ${(state?.voltage ?? 0).toFixed(1)} V saat bekerja`,
+      trace: f.diagnosis.trace.map(label),
+      rootCause: f.diagnosis.rootCause ? `${f.diagnosis.rootCause.label}: ${REASON_TEXT[f.diagnosis.rootCause.reason]}` : null,
+      step: clue(f.cause),
+    };
+  });
 
   return {
-    scenario: `${scenario.label} + mag check`,
-    passed: report.passed && ign.started && ign.findings.length === 0 && toolsOut.length === 0,
+    scenario: `${scenario.label} + mag check + pengisian`,
+    passed: report.passed && ign.started && ign.findings.length === 0 && toolsOut.length === 0 && (charging?.passed ?? false),
     // Alat tertinggal: tes tetap jalan, tapi pemeriksaan pasca-tes menemukannya di area mesin
     fod: report.defects.filter((d) => d.kind === "fod").map((d) => {
       const step = AIRCRAFT.steps.find((x) => x.id === d.stepId);
@@ -122,21 +144,11 @@ export function runGroundTest(s: RakitState, toolsOut: ToolsOut = []): TestSheet
         step: clue(f.cause),
       })),
     },
-    consumers: report.consumers
-      .filter((c) => scenario.mustOperate.includes(c.consumerId))
-      .map((c) => ({ label: label(c.consumerId), ok: c.status === "ok", voltage: c.voltage })),
-    findings: report.findings.map((f) => {
-      const state = report.consumers.find((c) => c.consumerId === f.consumerId);
-      return {
-        consumer: label(f.consumerId),
-        symptom: f.diagnosis.status === "unpowered"
-          ? "tidak mendapat listrik"
-          : `tegangan turun ke ${(state?.voltage ?? 0).toFixed(1)} V saat bekerja`,
-        trace: f.diagnosis.trace.map(label),
-        rootCause: f.diagnosis.rootCause ? `${f.diagnosis.rootCause.label}: ${REASON_TEXT[f.diagnosis.rootCause.reason]}` : null,
-        step: clue(f.cause),
-      };
-    }),
-    untested: UNTESTED,
+    consumers: [
+      ...consumersOf(report, scenario.mustOperate),
+      ...(charging && engineRun ? consumersOf(charging, engineRun.mustOperate, " · mesin hidup") : []),
+    ],
+    findings: [...findingsOf(report), ...(charging ? findingsOf(charging) : [])],
+    untested: engineRun ? UNTESTED : [...UNTESTED, "Pengisian alternator belum diuji karena mesin tidak hidup."],
   };
 }

@@ -3,7 +3,9 @@
     { "id": "ele.battery", "name": "Baterai", "ataChapter": 24, "tier": 1 },
     { "id": "ele.cable.battery-relay", "name": "Kabel baterai ke relay baterai", "ataChapter": 24, "tier": 3 },
     { "id": "ele.cable.bus-starter", "name": "Kabel bus utama ke relay starter", "ataChapter": 24, "tier": 3 },
-    { "id": "ele.cable.starter", "name": "Kabel starter", "ataChapter": 24, "tier": 3 }
+    { "id": "ele.cable.starter", "name": "Kabel starter", "ataChapter": 24, "tier": 3 },
+    { "id": "ele.alternator", "name": "Alternator", "ataChapter": 24, "tier": 2 },
+    { "id": "ele.cable.alternator-output", "name": "Kabel output alternator", "ataChapter": 24, "tier": 3 }
   ],
   "steps": [
     {
@@ -59,6 +61,34 @@
       "effects": {
         "missing": [{ "kind": "missing", "linkId": "w.starter-cable" }],
         "underTorque": [{ "kind": "addedResistance", "linkId": "w.starter-cable", "ohms": 0.05 }]
+      }
+    },
+    {
+      "id": "24-30-05",
+      "title": "Pasang alternator",
+      "partId": "ele.alternator",
+      "requires": [],
+      "actions": [
+        { "kind": "inspect" },
+        { "kind": "install" },
+        { "kind": "torque", "unit": "in-lb", "range": null, "source": null, "fasteners": 2 },
+        { "kind": "inspect" }
+      ],
+      "effects": {
+        "missing": [{ "kind": "missing", "linkId": "w.alternator-drive" }]
+      }
+    },
+    {
+      "id": "24-30-06",
+      "title": "Sambungkan kabel output alternator",
+      "partId": "ele.cable.alternator-output",
+      "requires": ["24-30-05"],
+      "actions": [
+        { "kind": "connect", "to": "ele.alternator" },
+        { "kind": "inspect" }
+      ],
+      "effects": {
+        "missing": [{ "kind": "missing", "linkId": "w.alternator-output" }]
       }
     }
   ]

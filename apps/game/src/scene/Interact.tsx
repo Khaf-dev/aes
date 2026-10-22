@@ -56,7 +56,7 @@ function act(pick: Pick) {
   if (pick.kind === "stud") g.clickStud({ part: pick.part, index: pick.index });
   else if (pick.kind === "nut") g.clickNut({ part: pick.part, index: pick.index });
   else if (pick.kind === "part") g.pickUp(pick.part);
-  else if (pick.kind === "terminal") g.togglePLead(pick.part);
+  else if (pick.kind === "terminal") g.toggleCable(pick.part);
 }
 
 export function Interact({ children }: { children: React.ReactNode }) {

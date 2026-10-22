@@ -138,7 +138,7 @@ function Mounts() {
             );
           })}
           {(rakit.wires[def.assetId] ?? []).map((w) => <SafetyWire key={`${w.a}-${w.b}`} def={def} a={w.a} b={w.b} />)}
-          {def.pLead && rakit.parts[def.assetId] === "installed" && <PLead def={def} connected={rakit.pLeads[def.assetId] ?? false} />}
+          {def.cable && rakit.parts[def.assetId] === "installed" && <TerminalCable def={def} connected={rakit.cables[def.assetId] ?? false} />}
         </group>
       ))}
     </>
@@ -149,11 +149,11 @@ const brass = new THREE.MeshStandardMaterial({ color: 0xb08d57, metalness: 1, ro
 const terminalGeo = new THREE.CylinderGeometry(0.006, 0.006, 0.014, 12);
 
 /**
- * Terminal P-lead di belakang magneto + kabelnya ke firewall (menuju kunci kontak). Posisi terminal
- * di model magneto belum ada di metadata pipeline, jadi diletakkan kira-kira di tutup belakang (visual saja).
+ * Terminal kabel di part + kabelnya ke firewall (P-lead ke kunci kontak, output alternator ke bus).
+ * Posisi terminal dari `cable.terminal`: untuk magneto masih perkiraan di tutup belakang, untuk alternator dari metadata model.
  */
-function PLead({ def, connected }: { def: (typeof PARTS)[number]; connected: boolean }) {
-  const terminal = V(PAD_FACE_X + 0.15, def.pad.y + 0.035, def.pad.z);
+function TerminalCable({ def, connected }: { def: (typeof PARTS)[number]; connected: boolean }) {
+  const terminal = V(PAD_FACE_X + def.cable!.terminal[0], def.pad.y + def.cable!.terminal[1], def.pad.z);
   const cable = useMemo(() => {
     const end = connected ? terminal : V(0.86, def.pad.y - 0.05, def.pad.z * 2.2); // tidak tersambung: ujung kabel menggantung di firewall
     const curve = new THREE.CatmullRomCurve3([V(0.88, def.pad.y + 0.2, def.pad.z * 1.6), V(0.8, def.pad.y + 0.12, def.pad.z * 1.3), end]);
@@ -162,7 +162,7 @@ function PLead({ def, connected }: { def: (typeof PARTS)[number]; connected: boo
   return (
     <>
       <mesh geometry={terminalGeo} material={brass} position={terminal} rotation-z={Math.PI / 2} castShadow
-        userData={{ pick: { kind: "terminal", part: def.assetId, code: def.pLead!.stepId, name: `Terminal P-lead ${def.label} · ${connected ? "tersambung, klik untuk melepas" : "klik untuk menyambung"}` } }} />
+        userData={{ pick: { kind: "terminal", part: def.assetId, code: def.cable!.stepId, name: `Terminal ${def.cable!.name.toLowerCase()} ${def.label} · ${connected ? "tersambung, klik untuk melepas" : "klik untuk menyambung"}` } }} />
       <mesh geometry={cable} material={M.rubber} castShadow raycast={NO_RAYCAST} />
     </>
   );

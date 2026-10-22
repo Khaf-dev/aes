@@ -8,7 +8,13 @@
     { "id": "relay.starter", "kind": "conductor", "label": "Relay starter" },
     { "id": "load.starter", "kind": "consumer", "label": "Starter", "currentDraw": 150, "minVoltage": 18 },
     { "id": "bus.avionics", "kind": "conductor", "label": "Bus avionik" },
-    { "id": "load.radio", "kind": "consumer", "label": "Radio", "currentDraw": 3, "minVoltage": 20 }
+    { "id": "load.radio", "kind": "consumer", "label": "Radio", "currentDraw": 3, "minVoltage": 20 },
+    { "id": "src.alternator", "kind": "source", "label": "Alternator", "voltage": 28 },
+    { "id": "alt.stator", "kind": "conductor", "label": "Alternator (diputar mesin)" },
+    { "id": "alt.output", "kind": "conductor", "label": "Terminal output alternator" },
+    { "id": "relay.alternator", "kind": "conductor", "label": "Relay alternator" },
+    { "id": "alt.feed", "kind": "conductor", "label": "Titik pengisian bus utama" },
+    { "id": "chg.battery", "kind": "consumer", "label": "Pengisian baterai (ammeter)", "currentDraw": 10, "minVoltage": 25 }
   ],
   "links": [
     { "id": "w.battery-relay", "kind": "wire", "label": "Kabel baterai ke relay baterai", "from": "src.battery", "to": "relay.battery", "nominalResistance": 0.002 },
@@ -16,6 +22,12 @@
     { "id": "w.bus-starter-relay", "kind": "wire", "label": "Kabel bus ke relay starter", "from": "bus.main", "to": "relay.starter", "nominalResistance": 0.003 },
     { "id": "w.starter-cable", "kind": "wire", "label": "Kabel starter", "from": "relay.starter", "to": "load.starter", "nominalResistance": 0.003 },
     { "id": "sw.avionics", "kind": "switch", "label": "Saklar avionik", "from": "bus.main", "to": "bus.avionics", "nominalResistance": 0.001 },
-    { "id": "w.radio", "kind": "wire", "label": "Kabel radio", "from": "bus.avionics", "to": "load.radio", "nominalResistance": 0.05 }
+    { "id": "w.radio", "kind": "wire", "label": "Kabel radio", "from": "bus.avionics", "to": "load.radio", "nominalResistance": 0.05 },
+    { "id": "sw.engine-run", "kind": "switch", "label": "Mesin hidup (memutar alternator)", "from": "src.alternator", "to": "alt.stator", "nominalResistance": 0 },
+    { "id": "w.alternator-drive", "kind": "wire", "label": "Penggerak gear alternator di pad aksesori", "from": "alt.stator", "to": "alt.output", "nominalResistance": 0.001 },
+    { "id": "w.alternator-output", "kind": "wire", "label": "Kabel output alternator", "from": "alt.output", "to": "relay.alternator", "nominalResistance": 0.004 },
+    { "id": "sw.alternator", "kind": "switch", "label": "Master switch (ALT)", "from": "relay.alternator", "to": "alt.feed", "nominalResistance": 0.001 },
+    { "id": "w.alternator-bus", "kind": "wire", "label": "Sambungan pengisian ke bus utama", "from": "alt.feed", "to": "bus.main", "nominalResistance": 0.002 },
+    { "id": "w.battery-charge", "kind": "wire", "label": "Jalur pengisian ke baterai", "from": "alt.feed", "to": "chg.battery", "nominalResistance": 0.003 }
   ]
 }
