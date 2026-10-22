@@ -137,10 +137,46 @@ function Mounts() {
               </group>
             );
           })}
+          {(rakit.wires[def.assetId] ?? []).map((w) => <SafetyWire key={`${w.a}-${w.b}`} def={def} a={w.a} b={w.b} />)}
+          {def.pLead && rakit.parts[def.assetId] === "installed" && <PLead def={def} connected={rakit.pLeads[def.assetId] ?? false} />}
         </group>
       ))}
     </>
   );
+}
+
+const brass = new THREE.MeshStandardMaterial({ color: 0xb08d57, metalness: 1, roughness: 0.35 });
+const terminalGeo = new THREE.CylinderGeometry(0.006, 0.006, 0.014, 12);
+
+/**
+ * Terminal P-lead di belakang magneto + kabelnya ke firewall (menuju kunci kontak). Posisi terminal
+ * di model magneto belum ada di metadata pipeline, jadi diletakkan kira-kira di tutup belakang (visual saja).
+ */
+function PLead({ def, connected }: { def: (typeof PARTS)[number]; connected: boolean }) {
+  const terminal = V(PAD_FACE_X + 0.15, def.pad.y + 0.035, def.pad.z);
+  const cable = useMemo(() => {
+    const end = connected ? terminal : V(0.86, def.pad.y - 0.05, def.pad.z * 2.2); // tidak tersambung: ujung kabel menggantung di firewall
+    const curve = new THREE.CatmullRomCurve3([V(0.88, def.pad.y + 0.2, def.pad.z * 1.6), V(0.8, def.pad.y + 0.12, def.pad.z * 1.3), end]);
+    return new THREE.TubeGeometry(curve, 24, 0.003, 8);
+  }, [connected, def, terminal.x]);
+  return (
+    <>
+      <mesh geometry={terminalGeo} material={brass} position={terminal} rotation-z={Math.PI / 2} castShadow
+        userData={{ pick: { kind: "terminal", part: def.assetId, code: def.pLead!.stepId, name: `Terminal P-lead ${def.label} · ${connected ? "tersambung, klik untuk melepas" : "klik untuk menyambung"}` } }} />
+      <mesh geometry={cable} material={M.rubber} castShadow raycast={NO_RAYCAST} />
+    </>
+  );
+}
+
+/** Kawat safety wire antar muka mur, sedikit melengkung keluar. Ukuran kawat hanya visual. */
+function SafetyWire({ def, a, b }: { def: (typeof PARTS)[number]; a: number; b: number }) {
+  const geometry = useMemo(() => {
+    const x = PAD_FACE_X + def.pad.nutX + 0.005;
+    const za = def.pad.z + (def.pad.studs[a] ?? 0), zb = def.pad.z + (def.pad.studs[b] ?? 0);
+    const curve = new THREE.CatmullRomCurve3([V(x, def.pad.y, za), V(x + 0.006, def.pad.y - 0.008, (za + zb) / 2), V(x, def.pad.y, zb)]);
+    return new THREE.TubeGeometry(curve, 24, 0.0005, 6);
+  }, [def, a, b]);
+  return <mesh geometry={geometry} material={M.steel} castShadow raycast={NO_RAYCAST} />;
 }
 
 export function Engine({ children }: { children?: React.ReactNode }) {

@@ -13,7 +13,10 @@
         { "kind": "install" },
         { "kind": "torque", "unit": "in-lb", "range": null, "source": null, "fasteners": 2 },
         { "kind": "inspect" }
-      ]
+      ],
+      "effects": {
+        "missing": [{ "kind": "missing", "linkId": "w.starter-cable" }]
+      }
     }
   ]
 }

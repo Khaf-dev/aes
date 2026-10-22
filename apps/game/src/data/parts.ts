@@ -23,8 +23,10 @@ export interface PartDef {
   /** Posisi istirahat di meja part (x, z) dan rotasi yaw. */
   readonly rest: readonly [x: number, z: number];
   readonly yaw: number;
-  /** Teks strip task card per tahap: pasang part, pasang mur, kencangkan, selesai. */
-  readonly stages: readonly (readonly [code: string, text: string])[];
+  /** Model GLB dari asset pipeline bila berbeda dari `assetId` (magneto kiri & kanan memakai model yang sama). */
+  readonly model?: string;
+  /** Langkah sambung P-lead magneto (kabel ground magneto ke kunci kontak). */
+  readonly pLead?: { readonly stepId: string; readonly contentId: string };
 }
 
 /** Muka pad di x = 0,52 (normal +x), di belakang gearbox aksesori. */
@@ -36,16 +38,24 @@ export const PARTS: readonly PartDef[] = [
     contentId: "ign.magneto.left",
     stepId: "74-10-01",
     name: "Magneto kiri",
-    label: "magneto",
+    label: "magneto kiri",
     pad: { code: "74-10-01", name: "Pad magneto kiri · titik pasang", y: 0.1, z: 0.09, studs: [-0.056, 0.056], nutX: 0.016 },
     rest: [0.13, 0.96],
     yaw: 0.35,
-    stages: [
-      ["TC 74-10-01 · LANGKAH 1 / 6", "Pasang magneto kiri ke pad"],
-      ["TC 74-10-01 · LANGKAH 2 / 6", "Pasang ring & mur di stud (klik stud)"],
-      ["TC 74-10-01 · LANGKAH 3 / 6", "Kencangkan mur pengikat (T: kunci torsi)"],
-      ["TC 74-10-01 · LANGKAH 4 / 6", "Pasang safety wire, lalu sign-off task card"],
-    ],
+    pLead: { stepId: "74-10-03", contentId: "ele.p-lead.left" },
+  },
+  {
+    // Pad kanan dicerminkan dari pad kiri terhadap bidang tengah mesin (z = 0); posisi belum bersumber.
+    assetId: "acc.magneto.mk1.r",
+    model: "acc.magneto.mk1",
+    contentId: "ign.magneto.right",
+    stepId: "74-10-02",
+    name: "Magneto kanan",
+    label: "magneto kanan",
+    pad: { code: "74-10-02", name: "Pad magneto kanan · titik pasang", y: 0.1, z: -0.09, studs: [-0.056, 0.056], nutX: 0.016 },
+    rest: [0.24, 0.79],
+    yaw: 0.2,
+    pLead: { stepId: "74-10-04", contentId: "ele.p-lead.right" },
   },
   {
     assetId: "acc.starter.mk1",
@@ -56,12 +66,6 @@ export const PARTS: readonly PartDef[] = [
     pad: { code: "80-10-01", name: "Pad starter · titik pasang", y: -0.06, z: -0.075, studs: [-0.05, 0.05], nutX: 0.022 },
     rest: [0.5, 0.8],
     yaw: -0.25,
-    stages: [
-      ["TC 80-10-01 · LANGKAH 1 / 4", "Pasang starter ke pad"],
-      ["TC 80-10-01 · LANGKAH 2 / 4", "Pasang ring & mur di stud (klik stud)"],
-      ["TC 80-10-01 · LANGKAH 3 / 4", "Kencangkan mur pengikat (T: kunci torsi)"],
-      ["TC 80-10-01 · LANGKAH 4 / 4", "Sambungkan kabel starter, lalu sign-off"],
-    ],
   },
 ];
 
@@ -70,3 +74,6 @@ export const partDef = (assetId: string): PartDef => {
   if (!def) throw new Error(`Part tidak dikenal: ${assetId}`);
   return def;
 };
+
+/** Semua langkah yang dikerjakan pemain di hanggar (pasang part + sambung P-lead). */
+export const PLAYABLE_STEP_IDS: readonly string[] = PARTS.flatMap((p) => [p.stepId, ...(p.pLead ? [p.pLead.stepId] : [])]);

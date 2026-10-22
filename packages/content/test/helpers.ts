@@ -17,7 +17,9 @@ function readJsonDir(dir: string): unknown[] {
 export function loadAircraftInput(): AircraftInput {
   const networks = readJsonDir("networks");
   if (networks.length !== 1) throw new Error(`Diharapkan 1 jaringan, ada ${networks.length}`);
-  return { packs: readJsonDir("packs"), network: networks[0], scenarios: readJsonDir("scenarios") };
+  const ignition = readJsonDir("ignition");
+  if (ignition.length !== 1) throw new Error(`Diharapkan 1 data pengapian, ada ${ignition.length}`);
+  return { packs: readJsonDir("packs"), network: networks[0], scenarios: readJsonDir("scenarios"), ignition: ignition[0] };
 }
 
 /** Log perakitan sempurna untuk semua langkah, semua di-sign-off. */

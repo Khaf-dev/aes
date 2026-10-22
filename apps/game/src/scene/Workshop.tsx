@@ -1,6 +1,8 @@
 /** Area kerja di dinding belakang: meja kerja + task card, shadow board, papan tulis, troli alat, APAR, lampu meja. */
 import { useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
+import { PLAYABLE_STEP_IDS } from "../data/parts.ts";
+import { checklist, STEPS } from "../logic/assemblyLog.ts";
 import { useGame } from "../state/store.ts";
 import { Rod } from "./Hangar.tsx";
 import { BACK, BOARD, canvasTexture, loadCanvasFonts, M, ROOM, solid, toBoard, V } from "./shared.ts";
@@ -24,46 +26,77 @@ function Box({ size, position, material, ...rest }: {
   );
 }
 
-function Workbench() {
+const BENCH = { x: -1.4, z: BACK + 0.42 } as const;
+
+/** Task card di atas papan klip meja kerja, satu per langkah perakitan. Posisinya dipakai kamera mode dokumen. */
+export const TASK_CARDS = PLAYABLE_STEP_IDS.map((stepId, i) => ({
+  stepId,
+  // Dua baris papan klip di atas meja kerja
+  position: V(BENCH.x - 0.05 - (i % 3) * 0.29, 0.955, BENCH.z - 0.17 + Math.floor(i / 3) * 0.36),
+  yaw: 0.03 - (i % 3) * 0.03,
+}));
+
+function TaskCard({ stepId, position, yaw }: (typeof TASK_CARDS)[number]) {
   const fonts = useCanvasFonts();
-  const bx = -1.4, bz = BACK + 0.42;
-  const card = useMemo(() => canvasTexture(512, 700, (g) => {
+  const card = useGame((s) => s.rakit.signoff[stepId]);
+  const step = STEPS.find((s) => s.id === stepId)!;
+  const lines = useMemo(() => checklist(stepId), [stepId]);
+  const map = useMemo(() => canvasTexture(512, 700, (g) => {
     g.fillStyle = "#F3ECDD"; g.fillRect(0, 0, 512, 700);
     g.fillStyle = "#1E1C19"; g.font = '700 46px "Courier Prime", monospace'; g.fillText("TASK CARD", 30, 70);
     g.fillRect(30, 88, 452, 4);
-    g.font = '700 34px "Courier Prime", monospace'; g.fillText("74-10-01", 30, 140);
-    g.font = '400 28px "Courier Prime", monospace'; g.fillText("Pasang magneto kiri", 30, 184);
+    g.font = '700 34px "Courier Prime", monospace'; g.fillText(stepId, 30, 140);
+    g.font = '400 26px "Courier Prime", monospace'; g.fillText(step.title.slice(0, 30), 30, 184);
     g.strokeStyle = "#3A352D"; g.lineWidth = 2;
-    for (let i = 0; i < 6; i++) { g.strokeRect(30, 220 + i * 66, 452, 66); g.fillText(String(i + 1), 44, 262 + i * 66); }
-    g.fillStyle = "#1F3A8A"; g.font = '700 54px "Caveat", cursive'; g.fillText("RK", 410, 266); g.fillText("RK", 410, 332);
-    g.fillStyle = "rgba(240,190,90,0.35)"; g.fillRect(31, 353, 450, 64);
-  }), [fonts]);
-  const nutGeo = useMemo(() => new THREE.CylinderGeometry(0.012, 0.012, 0.01, 6), []);
+    lines.forEach((_, i) => {
+      g.strokeRect(30, 220 + i * 66, 452, 66);
+      g.fillStyle = "#1E1C19"; g.font = '400 28px "Courier Prime", monospace'; g.fillText(String(i + 1), 44, 262 + i * 66);
+      if (card?.checks[i]) { g.fillStyle = "#1F3A8A"; g.font = '700 54px "Caveat", cursive'; g.fillText("RK", 410, 266 + i * 66); }
+    });
+    if (card?.signed) {
+      g.save(); g.translate(250, 640); g.rotate(-0.12);
+      g.strokeStyle = "#B3261E"; g.lineWidth = 5; g.strokeRect(-150, -40, 300, 64);
+      g.fillStyle = "#B3261E"; g.font = '700 34px "Courier Prime", monospace'; g.textAlign = "center"; g.fillText("SIGNED · RK", 0, 6);
+      g.restore();
+    }
+  }), [fonts, card, lines, step, stepId]);
   return (
-    <group ref={solid}>
-      <Box size={[1.9, 0.05, 0.72]} position={[bx, 0.92, bz]} material={M.benchTop} userData={decor("", "Meja kerja engineer")} />
-      {[[-0.9, -0.32], [0.9, -0.32], [-0.9, 0.32], [0.9, 0.32]].map(([dx, dz], i) => (
-        <Box key={i} size={[0.05, 0.9, 0.05]} position={[bx + dx!, 0.45, bz + dz!]} material={M.bluePaint} />
-      ))}
-      <Box size={[1.85, 0.03, 0.66]} position={[bx, 0.2, bz]} material={M.bluePaint} />
-      {/* ragum, kotak perkakas, nampan mur */}
-      <Box size={[0.16, 0.08, 0.2]} position={[bx + 0.7, 0.99, bz + 0.18]} material={M.bluePaint} />
-      <Box size={[0.16, 0.07, 0.03]} position={[bx + 0.7, 1.06, bz + 0.27]} material={M.steel} />
-      <Box size={[0.16, 0.07, 0.03]} position={[bx + 0.7, 1.06, bz + 0.2]} material={M.steel} />
-      <Box size={[0.5, 0.22, 0.26]} position={[bx - 0.5, 0.33, bz]} material={M.redPaint} />
-      <Box size={[0.24, 0.02, 0.16]} position={[bx + 0.25, 0.955, bz + 0.12]} material={M.darkSteel} />
-      {Array.from({ length: 6 }, (_, i) => (
-        <mesh key={i} geometry={nutGeo} material={M.steel} castShadow
-          position={[bx + 0.18 + (i % 3) * 0.05, 0.972, bz + 0.09 + Math.floor(i / 3) * 0.06]} />
-      ))}
-      <mesh position={[bx - 0.62, 0.995, bz + 0.15]} material={M.ceramic} castShadow><cylinderGeometry args={[0.04, 0.036, 0.1, 20]} /></mesh>
-      <mesh position={[bx - 0.58, 1.0, bz + 0.15]} material={M.ceramic} castShadow><torusGeometry args={[0.026, 0.007, 8, 16]} /></mesh>
-      <Box size={[0.27, 0.008, 0.36]} position={[bx - 0.05, 0.95, bz + 0.05]} rotation-y={0.12} material={M.wood} />
-      <mesh position={[bx - 0.05, 0.955, bz + 0.06]} rotation={[-Math.PI / 2, 0, 0.12]} receiveShadow userData={decor("TC 74-10-01", "Task card · buka di mode dokumen")}>
+    <group position={position} rotation-y={yaw}>
+      <Box size={[0.27, 0.008, 0.36]} position={[0, -0.005, -0.01]} material={M.wood} />
+      <mesh rotation-x={-Math.PI / 2} receiveShadow userData={{ pick: { kind: "taskcard", stepId, code: `TC ${stepId}`, name: "Task card · klik untuk membuka checklist" } }}>
         <planeGeometry args={[0.235, 0.32]} />
-        <meshStandardMaterial map={card} roughness={0.9} />
+        <meshStandardMaterial map={map} roughness={0.9} />
       </mesh>
     </group>
+  );
+}
+
+function Workbench() {
+  const { x: bx, z: bz } = BENCH;
+  const nutGeo = useMemo(() => new THREE.CylinderGeometry(0.012, 0.012, 0.01, 6), []);
+  return (
+    <>
+      <group ref={solid}>
+        <Box size={[1.9, 0.05, 0.72]} position={[bx, 0.92, bz]} material={M.benchTop} userData={{ pick: { kind: "bench", code: "", name: "Meja kerja · klik untuk membuka task card" } }} />
+        {[[-0.9, -0.32], [0.9, -0.32], [-0.9, 0.32], [0.9, 0.32]].map(([dx, dz], i) => (
+          <Box key={i} size={[0.05, 0.9, 0.05]} position={[bx + dx!, 0.45, bz + dz!]} material={M.bluePaint} />
+        ))}
+        <Box size={[1.85, 0.03, 0.66]} position={[bx, 0.2, bz]} material={M.bluePaint} />
+        {/* ragum, kotak perkakas, nampan mur */}
+        <Box size={[0.16, 0.08, 0.2]} position={[bx + 0.7, 0.99, bz + 0.18]} material={M.bluePaint} />
+        <Box size={[0.16, 0.07, 0.03]} position={[bx + 0.7, 1.06, bz + 0.27]} material={M.steel} />
+        <Box size={[0.16, 0.07, 0.03]} position={[bx + 0.7, 1.06, bz + 0.2]} material={M.steel} />
+        <Box size={[0.5, 0.22, 0.26]} position={[bx - 0.5, 0.33, bz]} material={M.redPaint} />
+        <Box size={[0.24, 0.02, 0.16]} position={[bx + 0.25, 0.955, bz + 0.12]} material={M.darkSteel} />
+        {Array.from({ length: 6 }, (_, i) => (
+          <mesh key={i} geometry={nutGeo} material={M.steel} castShadow
+            position={[bx + 0.18 + (i % 3) * 0.05, 0.972, bz + 0.09 + Math.floor(i / 3) * 0.06]} />
+        ))}
+        <mesh position={[bx - 0.85, 0.995, bz - 0.22]} material={M.ceramic} castShadow><cylinderGeometry args={[0.04, 0.036, 0.1, 20]} /></mesh>
+        <mesh position={[bx - 0.81, 1.0, bz - 0.22]} material={M.ceramic} castShadow><torusGeometry args={[0.026, 0.007, 8, 16]} /></mesh>
+      </group>
+      {TASK_CARDS.map((c) => <TaskCard key={c.stepId} {...c} />)}
+    </>
   );
 }
 
@@ -74,6 +107,7 @@ const BOARD_WRENCHES: [number, number][] = [[120, 560], [210, 600], [300, 640], 
 function ShadowBoard() {
   const fonts = useCanvasFonts();
   const inUse = useGame((s) => s.wrenchAt !== null);
+  const tangInUse = useGame((s) => s.wireMode);
   const texture = useMemo(() => canvasTexture(1600, 900, () => {}), []);
   useEffect(() => {
     const g = (texture.image as HTMLCanvasElement).getContext("2d")!;
@@ -96,9 +130,10 @@ function ShadowBoard() {
     g.font = '700 30px "Courier Prime", monospace'; g.fillText("KUNCI TORSI", 1030, 420);
     if (inUse) { g.font = '400 26px "Courier Prime", monospace'; g.fillText("sedang dipakai · RK", 1030, 460); }
     g.fillStyle = SIL; g.beginPath(); g.roundRect(1300, 190, 50, 280, 16); g.fill(); g.beginPath(); g.roundRect(1380, 190, 50, 280, 16); g.fill();
-    g.fillStyle = "#1E1C19"; g.font = '700 26px "Courier Prime", monospace'; g.fillText("TANG SAFETY WIRE", 1240, 520);
+    g.fillStyle = tangInUse ? "#B3261E" : "#1E1C19"; g.font = '700 26px "Courier Prime", monospace'; g.fillText("TANG SAFETY WIRE", 1240, 520);
+    if (tangInUse) { g.font = '400 24px "Courier Prime", monospace'; g.fillText("sedang dipakai · RK", 1250, 556); }
     texture.needsUpdate = true;
-  }, [texture, inUse, fonts]);
+  }, [texture, inUse, tangInUse, fonts]);
 
   const yellow = useMemo(() => new THREE.MeshStandardMaterial({ color: 0xd8b21f, roughness: 0.35 }), []);
   const pv = toBoard(760, 420);
@@ -140,7 +175,7 @@ function ShadowBoard() {
       {/* tang safety wire */}
       {[1325, 1405].map((x) => {
         const p = toBoard(x, 330);
-        return <Box key={x} size={[0.048, 0.28, 0.02]} position={[p.x, p.y, p.z + 0.01]} material={M.bluePaint} />;
+        return <Box key={x} visible={!tangInUse} size={[0.048, 0.28, 0.02]} position={[p.x, p.y, p.z + 0.01]} material={M.bluePaint} />;
       })}
     </>
   );

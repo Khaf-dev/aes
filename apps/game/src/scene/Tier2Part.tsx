@@ -27,8 +27,9 @@ function alignQuat(from: THREE.Vector3, to: THREE.Vector3) {
 }
 
 export function Tier2Part({ def }: { def: PartDef }) {
-  const gltf = useGLTF(`/tier2/${def.assetId}.glb`);
-  const meta = JSON.parse(useLoader(THREE.FileLoader, `/tier2/${def.assetId}.meta.json`) as string) as PartMeta;
+  const model = def.model ?? def.assetId;
+  const gltf = useGLTF(`/tier2/${model}.glb`);
+  const meta = JSON.parse(useLoader(THREE.FileLoader, `/tier2/${model}.meta.json`) as string) as PartMeta;
   const camera = useThree((s) => s.camera);
   const status = useGame((s) => s.rakit.parts[def.assetId]);
   const first = useRef(true);

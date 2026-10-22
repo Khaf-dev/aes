@@ -18,9 +18,11 @@ import { TorqueRig } from "./scene/TorqueRig.tsx";
 import { releasePull, startPull } from "./state/pullActions.ts";
 import { pull, useGame } from "./state/store.ts";
 import { Closeup } from "./ui/Closeup.tsx";
+import { DocumentView } from "./ui/DocumentView.tsx";
+import { TestReport } from "./ui/TestReport.tsx";
 import { Hud } from "./ui/Hud.tsx";
 
-for (const p of PARTS) useGLTF.preload(`/tier2/${p.assetId}.glb`);
+for (const p of PARTS) useGLTF.preload(`/tier2/${p.model ?? p.assetId}.glb`);
 useGLTF.preload("/tools/tool.torque-wrench.40-200.glb");
 
 function Tweens() {
@@ -35,6 +37,9 @@ function useKeyboard() {
       const g = useGame.getState();
       const k = e.key.toLowerCase();
       if (k === "h") { g.setLights({ headlamp: !g.lights.headlamp }); return; }
+      if (g.testSheet) { if (e.key === "Escape") g.closeTest(); return; }
+      if (g.document) { if (e.key === "Escape") g.closeDocument(); return; }
+      if (g.wirePending) { if (e.key === "Escape") g.finishWire(null); return; }
       if (g.closeup) {
         // Close-up menangkap semua tombol: Spasi tahan = tarik, panah = putar thimble
         if (e.key === "Escape") g.closeCloseup();
@@ -46,8 +51,11 @@ function useKeyboard() {
       if (e.key === "Escape") g.putBack();
       else if (k === "t") g.setTorqueMode(!g.torqueMode);
       else if (k === "x") g.setLens(!g.lensOn);
+      else if (k === "w") g.setWireMode(!g.wireMode);
+      else if (k === "g") g.runTest();
       else if (k === "p") g.setSpin(!g.spin);
       else if (k === "r") cameraApi.reset();
+      else if (k === "f") cameraApi.focus();
     };
     const up = (e: KeyboardEvent) => { if (e.code === "Space") releasePull(); };
     window.addEventListener("keydown", down);
@@ -100,6 +108,8 @@ export function App() {
       </div>
       <Hud />
       <Closeup />
+      <DocumentView />
+      <TestReport />
     </>
   );
 }

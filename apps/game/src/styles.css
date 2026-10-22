@@ -197,3 +197,82 @@
     .lab { top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 160px); }
     .hint { white-space: normal; text-align: center; width: calc(100vw - 32px); }
   }
+
+  /* Mode dokumen: scene diredupkan, task card tampil rata sebagai kertas cetak */
+  body:has(.doc) :is(.lab, .bar, .hint, .strip, .tool) { visibility: hidden; }
+  .doc {
+    position: fixed; inset: 0; z-index: 12; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; padding: 16px; background: rgba(3, 4, 7, 0.55); overflow-y: auto;
+  }
+  .doc-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; width: min(560px, 100%); }
+  .doc-tabs button {
+    min-height: 40px; padding: 0 12px; font-family: var(--font-type); font-size: 13px; cursor: pointer; border-radius: 3px;
+    border: 1.5px solid #6E675A; background: #CFC6B3; color: var(--ink);
+  }
+  .doc-tabs button[aria-current="true"] { background: #F3ECDD; font-weight: 700; border-color: var(--ink); }
+  .doc-tabs button:focus-visible { outline: 2px solid var(--select); outline-offset: 2px; }
+  .doc-paper {
+    width: min(560px, 100%); background: #F3ECDD; color: var(--ink); font-family: var(--font-type);
+    padding: 22px 26px 18px; transform: rotate(-0.6deg); box-shadow: 0 18px 40px rgba(0,0,0,0.6);
+  }
+  .doc-paper header { border-bottom: 3px solid var(--ink); padding-bottom: 8px; display: flex; flex-direction: column; gap: 2px; }
+  .doc-paper header b { font-size: 22px; letter-spacing: 0.04em; }
+  .doc-code { font-size: 18px; font-weight: 700; }
+  .doc-paper h2 { margin: 0; font-size: 17px; font-weight: 400; }
+  .doc-sub { font-size: 13px; color: #4a4741; }
+  .doc-paper ol { list-style: none; margin: 10px 0 0; padding: 0; }
+  .doc-paper li button {
+    width: 100%; display: grid; grid-template-columns: 28px 1fr 56px; align-items: center; gap: 8px;
+    min-height: 52px; padding: 6px 8px; border: 1.5px solid #3A352D; border-top: none; background: transparent;
+    color: inherit; font: inherit; font-size: 14px; text-align: left; cursor: pointer;
+  }
+  .doc-paper li:first-child button { border-top: 1.5px solid #3A352D; }
+  .doc-paper li button:disabled { cursor: default; }
+  .doc-paper li button:focus-visible { outline: 2px solid var(--select); outline-offset: -2px; }
+  .doc-n { font-weight: 700; }
+  .doc-paraf { font-family: var(--font-hand); font-size: 30px; color: #1F3A8A; text-align: center; border-left: 1.5px solid #3A352D; }
+  .doc-note { font-family: var(--font-hand); font-size: 18px; color: #4a4741; margin: 10px 0 0; }
+  .doc-paper footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .doc-paper footer button {
+    min-height: 40px; padding: 0 14px; font: inherit; font-size: 14px; cursor: pointer; border-radius: 3px;
+    border: 1.5px dashed #6E675A; background: transparent; color: var(--ink);
+  }
+  .doc-paper .doc-sign { border: 2px solid #B3261E; color: #B3261E; font-weight: 700; }
+  .doc-paper footer button:focus-visible { outline: 2px solid var(--select); outline-offset: 2px; }
+  .doc-stamp {
+    border: 3px solid #B3261E; color: #B3261E; font-weight: 700; font-size: 20px; padding: 2px 14px; transform: rotate(-6deg);
+  }
+
+  /* Pilihan arah lilitan safety wire: kertas tempel kecil */
+  .wire-prompt {
+    position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 90px); transform: translateX(-50%) rotate(-0.6deg); z-index: 11;
+    display: flex; flex-direction: column; gap: 8px; max-width: calc(100vw - 32px);
+    background: var(--paper); color: var(--ink); font-family: var(--font-type); padding: 12px 16px;
+    border-left: 4px solid var(--lamp); box-shadow: 0 10px 24px rgba(0,0,0,0.55);
+  }
+  .wire-prompt b { font-size: 12px; letter-spacing: 0.05em; }
+  .wire-prompt div { display: flex; flex-wrap: wrap; gap: 8px; }
+  .wire-prompt button {
+    min-height: 40px; padding: 0 12px; font: inherit; font-size: 14px; cursor: pointer; border-radius: 3px;
+    border: 1.5px solid #3A352D; background: transparent; color: var(--ink);
+  }
+  .wire-prompt button:focus-visible { outline: 2px solid var(--select); outline-offset: 2px; }
+
+  /* Laporan tes: kertas kuning (laporan investigasi) */
+  .report-paper { background: #F3E3A6; width: min(640px, 100%); }
+  .report-paper header { position: relative; }
+  .report-paper h3 { font-size: 14px; margin: 14px 0 6px; letter-spacing: 0.02em; }
+  .report-paper p { margin: 4px 0; font-size: 14px; line-height: 1.45; }
+  .report-stamp {
+    position: absolute; right: 0; top: 4px; transform: rotate(-8deg); font-size: 26px; font-weight: 700;
+    border: 4px solid currentColor; padding: 0 14px; border-radius: 4px;
+  }
+  .report-stamp.pass { color: #2E6B2E; }
+  .report-stamp.fail { color: #B3261E; }
+  .report-consumers { list-style: none; margin: 0; padding: 0; font-size: 14px; }
+  .report-consumers li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px dashed #8C7A3E; padding: 4px 0; }
+  .report-finding { border-left: 4px solid #B3261E; padding-left: 10px; margin-top: 10px; }
+  .report-clue { font-family: var(--font-hand); font-size: 19px !important; color: #1F3A8A; }
+  .report-untested ul { margin: 0; padding-left: 18px; font-size: 13px; color: #4a4741; }
+  .report-consumers li.bad { color: #B3261E; font-weight: 700; }
+  .report-note { font-size: 12px !important; color: #4a4741; }

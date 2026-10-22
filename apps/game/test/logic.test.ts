@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { beginPull, clampSetting, openSession, release, tick, type PullState } from "../src/logic/clickWrench.ts";
-import { assemblyLog, hiddenDefects, STEPS } from "../src/logic/assemblyLog.ts";
-import { initialRakit, install, installNut, pickUp, putBack, removeNut, stage, torqueNut } from "../src/logic/rakit.ts";
+import { assemblyLog, checklist, hiddenDefects, STEPS } from "../src/logic/assemblyLog.ts";
+import { runGroundTest } from "../src/logic/groundTest.ts";
+import {
+  cutWire, initialRakit, install, installNut, installWire, pickUp, putBack, removeNut, signOff, stage, toggleCheck, togglePLead, torqueNut,
+} from "../src/logic/rakit.ts";
 import { PARTS } from "../src/data/parts.ts";
 
 const MAG = "acc.magneto.mk1";
@@ -69,14 +72,40 @@ describe("aturan fisik mode rakit", () => {
 
   it("tahap task card mengikuti keadaan fisik", () => {
     let s = initialRakit();
-    expect(stage(s, MAG)).toBe(0);
+    expect(stage(s, MAG, false)).toBe("install");
     s = install(pickUp(s, MAG).state, MAG).state;
-    expect(stage(s, MAG)).toBe(1);
+    expect(stage(s, MAG, false)).toBe("nuts");
     s = installNut(installNut(s, MAG, 0).state, MAG, 1).state;
-    expect(stage(s, MAG)).toBe(2);
+    expect(stage(s, MAG, false)).toBe("torque");
     s = torqueNut(torqueNut(s, MAG, 0, 60, { setting: 60, feel: "klik" }), MAG, 1, 60, { setting: 60, feel: "klik" });
-    expect(stage(s, MAG)).toBe(3);
+    expect(stage(s, MAG, true)).toBe("wire");
+    expect(stage(s, MAG, false)).toBe("plead");
+    s = togglePLead(s, MAG).state;
+    expect(stage(s, MAG, false)).toBe("signoff");
+    expect(stage(signOff(s, "74-10-01", 5), MAG, false)).toBe("signoff"); // task card P-lead belum
+    expect(stage(signOff(signOff(s, "74-10-01", 5), "74-10-03", 2), MAG, false)).toBe("done");
+    expect(pickUp(s, MAG).toast?.bad).toBe(true); // P-lead masih tersambung
     expect(putBack(s).state).toBe(s);
+  });
+
+  it("safety wire: mur terikat tidak bisa dilepas/dipasang ulang sampai kawat dipotong", () => {
+    let s = install(pickUp(initialRakit(), MAG).state, MAG).state;
+    expect(installWire(s, MAG, 0, 1, true).toast?.bad).toBe(true); // mur belum ada
+    s = installNut(installNut(s, MAG, 0).state, MAG, 1).state;
+    s = installWire(s, MAG, 0, 1, false).state;
+    expect(s.wires[MAG]).toEqual([{ a: 0, b: 1, positive: false }]);
+    expect(removeNut(s, MAG, 1).state).toBe(s);
+    expect(installWire(s, MAG, 1, 0, true).state).toBe(s);
+    s = cutWire(s, MAG, 1).state;
+    expect(s.wires[MAG]).toEqual([]);
+    expect(removeNut(s, MAG, 1).state.nuts[MAG]?.[1]?.installed).toBe(false);
+  });
+
+  it("checklist dicentang bebas sampai ditandatangani, lalu terkunci", () => {
+    let s = toggleCheck(initialRakit(), "74-10-01", 1, 5);
+    expect(s.signoff["74-10-01"]?.checks).toEqual([false, true, false, false, false]);
+    s = signOff(s, "74-10-01", 5);
+    expect(toggleCheck(s, "74-10-01", 0, 5)).toBe(s);
   });
 });
 
@@ -89,9 +118,8 @@ describe("jembatan ke sim-core", () => {
   });
 
   it("part di meja = langkah belum dikerjakan; mur tanpa torsi = under-torque per mur", () => {
-    expect(hiddenDefects(initialRakit())).toMatchObject([
-      { stepId: "74-10-01", kind: "missing" },
-      { stepId: "80-10-01", kind: "missing" },
+    expect(hiddenDefects(initialRakit()).map((d) => `${d.stepId} ${d.kind}`)).toEqual([
+      "74-10-01 missing", "74-10-02 missing", "74-10-03 missing", "74-10-04 missing", "80-10-01 missing",
     ]);
     let s = install(pickUp(initialRakit(), MAG).state, MAG).state;
     s = installNut(installNut(s, MAG, 0).state, MAG, 1).state;
@@ -102,5 +130,74 @@ describe("jembatan ke sim-core", () => {
     ]);
     const torqueDefects = hiddenDefects(s).filter((d) => d.stepId === "74-10-01" && d.kind === "underTorque");
     expect(torqueDefects.map((d) => d.detail)).toEqual(["Mur #2: Torsi tidak diterapkan"]);
+  });
+});
+
+describe("task card", () => {
+  it("checklist diturunkan dari aksi di data konten, nilai tanpa sumber tidak dikarang", () => {
+    expect(checklist("74-10-01")).toEqual([
+      "Inspeksi magneto kiri sebelum dipasang",
+      "Pasang magneto kiri di pad",
+      "Kencangkan 2 mur pengikat · torsi: belum ada nilai bersumber, lihat handbook",
+      "Atur timing · belum ada nilai bersumber, lihat handbook",
+      "Inspeksi akhir pekerjaan",
+    ]);
+    expect(checklist("74-10-03")).toEqual(["Sambungkan kabel p-lead kiri ke magneto kiri", "Inspeksi akhir pekerjaan"]);
+  });
+
+  it("task card ditandatangani tanpa dikerjakan tetap tercatat, dengan defect-nya", () => {
+    const s = signOff(initialRakit(), "80-10-01", 4);
+    expect(hiddenDefects(s).filter((d) => d.stepId === "80-10-01")).toMatchObject([
+      { kind: "missing", detail: "Part belum dipasang", signedOff: true },
+      { kind: "underTorque", signedOff: true },
+      { kind: "underTorque", signedOff: true },
+    ]);
+  });
+
+  it("safety wire terbalik ikut ke log sebagai tegangan negatif", () => {
+    let s = install(pickUp(initialRakit(), MAG).state, MAG).state;
+    s = installWire(installNut(installNut(s, MAG, 0).state, MAG, 1).state, MAG, 0, 1, false).state;
+    expect(assemblyLog(s).records[0]?.performed).toContainEqual({ kind: "safetyWire", positiveTension: false });
+  });
+});
+
+describe("tes darat", () => {
+  it("starter tidak dipasang: tes gagal, akar masalah menunjuk task card 80-10-01", () => {
+    const sheet = runGroundTest(initialRakit());
+    expect(sheet.passed).toBe(false);
+    expect(sheet.findings).toMatchObject([
+      { consumer: "Starter", symptom: "tidak mendapat listrik", step: { id: "80-10-01", signedOff: false } },
+    ]);
+    expect(sheet.runUp.started).toBe(false);
+    expect(sheet.untested.join(" ")).toMatch(/Timing/);
+  });
+
+  const STR = "acc.starter.mk1", MAG_R = "acc.magneto.mk1.r";
+  const mount = (s: ReturnType<typeof initialRakit>, part: string) => install(pickUp(s, part).state, part).state;
+
+  it("dua magneto + P-lead + starter terpasang: lulus, mag check normal", () => {
+    let s = mount(mount(mount(initialRakit(), STR), MAG), MAG_R);
+    s = togglePLead(togglePLead(s, MAG).state, MAG_R).state;
+    const sheet = runGroundTest(s);
+    expect(sheet.passed).toBe(true);
+    expect(sheet.runUp.magCheck.every((c) => c.ok)).toBe(true);
+    expect(sheet.runUp.offCheck).toMatch(/mati/);
+  });
+
+  it("P-lead kanan lupa disambung: magneto kanan panas, mesin tetap hidup saat kunci OFF", () => {
+    let s = mount(mount(mount(initialRakit(), STR), MAG), MAG_R);
+    s = togglePLead(s, MAG).state;
+    const sheet = runGroundTest(s);
+    expect(sheet.passed).toBe(false);
+    expect(sheet.runUp.offCheck).toMatch(/TETAP HIDUP/);
+    expect(sheet.runUp.findings).toMatchObject([{ step: { id: "74-10-04" } }]);
+  });
+});
+
+describe("FOD", () => {
+  it("kunci torsi tidak dikembalikan: tes gagal dengan temuan FOD di langkah terakhir dipakai", () => {
+    const sheet = runGroundTest(initialRakit(), [{ tool: "Kunci torsi", stepId: "74-10-01" }]);
+    expect(sheet.passed).toBe(false);
+    expect(sheet.fod).toEqual([{ tool: "Kunci torsi", where: "74-10-01 (Pasang magneto kiri)" }]);
   });
 });

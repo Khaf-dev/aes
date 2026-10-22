@@ -1,0 +1,16 @@
+{
+  "magnetos": [
+    {
+      "id": "mag.left",
+      "label": "Magneto kiri",
+      "installStep": "74-10-01",
+      "pLeadStep": "74-10-03"
+    },
+    {
+      "id": "mag.right",
+      "label": "Magneto kanan",
+      "installStep": "74-10-02",
+      "pLeadStep": "74-10-04"
+    }
+  ]
+}

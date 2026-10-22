@@ -51,3 +51,6 @@ export {
   type TestReport,
   type TestScenario,
 } from "./testing/run-test.ts";
+
+// Pengapian
+export { runUp, type IgnitionFinding, type MagResult, type MagnetoSpec, type RunUpReport } from "./ignition/run-up.ts";

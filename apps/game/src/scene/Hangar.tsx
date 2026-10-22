@@ -2,7 +2,7 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import { useGame } from "../state/store.ts";
-import { canvasTexture, LAMP_AIM, LAMP_POS, M, PART_TABLE, rand, ROOM, solid, UP, V } from "./shared.ts";
+import { canvasTexture, fadeable, LAMP_AIM, LAMP_POS, M, PART_TABLE, rand, ROOM, solid, UP, V } from "./shared.ts";
 
 export function Rod({ a, b, r, material }: { a: THREE.Vector3; b: THREE.Vector3; r: number; material: THREE.Material }) {
   const { pos, quat, len } = useMemo(() => {
@@ -116,22 +116,24 @@ function Stand() {
   const corners = [V(0.42, 1.16, 0.15), V(0.42, 1.16, -0.15), V(0.42, 0.86, 0.15), V(0.42, 0.86, -0.15)];
   const plateCorners = [V(plateX, 1.36, 0.34), V(plateX, 1.36, -0.34), V(plateX, 0.68, 0.34), V(plateX, 0.68, -0.34)];
   const base = [V(1.12, 0.08, 0.5), V(1.12, 0.08, -0.5), V(-0.3, 0.08, 0.5), V(-0.3, 0.08, -0.5)];
-  const mountPick = { pick: { kind: "decor", code: "71-20-03", name: "Engine mount" } };
+  const mountPick = { pick: { kind: "decor", code: "71-20-03", name: "Engine mount" }, thin: true };
   return (
     <>
-      <mesh ref={solid} position={[plateX, 1.02, 0]} material={M.plate} castShadow receiveShadow
+      <mesh ref={(o) => { solid(o); fadeable(o); }} position={[plateX, 1.02, 0]} material={M.plate} castShadow receiveShadow
         userData={{ pick: { kind: "decor", code: "ATA 71", name: "Pelat dudukan (firewall uji)" } }}>
         <boxGeometry args={[0.04, 0.9, 0.9]} />
       </mesh>
       {corners.map((a, i) => (
-        <group key={i} userData={mountPick}><Rod a={a} b={plateCorners[i]!} r={0.012} material={M.darkSteel} /></group>
+        <group key={i} ref={fadeable} userData={mountPick}><Rod a={a} b={plateCorners[i]!} r={0.012} material={M.darkSteel} /></group>
       ))}
-      <Rod a={corners[0]!} b={plateCorners[1]!} r={0.01} material={M.darkSteel} />
-      <Rod a={corners[2]!} b={plateCorners[3]!} r={0.01} material={M.darkSteel} />
+      <group ref={fadeable} userData={{ thin: true }}>
+        <Rod a={corners[0]!} b={plateCorners[1]!} r={0.01} material={M.darkSteel} />
+        <Rod a={corners[2]!} b={plateCorners[3]!} r={0.01} material={M.darkSteel} />
+      </group>
       {[[0, 1], [2, 3], [0, 2], [1, 3]].map(([i, j]) => (
         <Rod key={`${i}${j}`} a={base[i!]!} b={base[j!]!} r={0.025} material={M.standPaint} />
       ))}
-      <group ref={solid}>
+      <group ref={(o) => { solid(o); fadeable(o); }} userData={{ thin: true }}>
         <Rod a={V(1.0, 0.08, 0.38)} b={V(1.0, 0.7, 0.3)} r={0.025} material={M.standPaint} />
         <Rod a={V(1.0, 0.08, -0.38)} b={V(1.0, 0.7, -0.3)} r={0.025} material={M.standPaint} />
         <mesh position={[0.99, 0.7, 0]} material={M.standPaint} castShadow receiveShadow><boxGeometry args={[0.06, 0.06, 0.7]} /></mesh>

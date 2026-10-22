@@ -52,6 +52,12 @@ export type Pick =
   | { readonly kind: "stud"; readonly part: string; readonly index: number; readonly code: string; readonly name: string }
   | { readonly kind: "nut"; readonly part: string; readonly index: number; readonly code: string; readonly name: string }
   | { readonly kind: "tool"; readonly code: string; readonly name: string }
+  /** Terminal P-lead di magneto: sambung/lepas kabel ground magneto. */
+  | { readonly kind: "terminal"; readonly part: string; readonly code: string; readonly name: string }
+  /** Meja kerja: membuka mode dokumen di task card yang paling relevan. */
+  | { readonly kind: "bench"; readonly code: string; readonly name: string }
+  /** Task card di meja kerja: membuka mode dokumen. */
+  | { readonly kind: "taskcard"; readonly stepId: string; readonly code: string; readonly name: string }
   /** Komponen dalam mesin: hanya bisa dipilih lewat lensa x-ray. */
   | { readonly kind: "internal"; readonly code: string; readonly name: string };
 
@@ -77,6 +83,8 @@ export const rig = {
   ghosts: new Map<string, THREE.Group>(),
   /** Induk part yang diam di meja; berada di dalam grup interaksi supaya bisa diklik. */
   staging: null as THREE.Group | null,
+  /** Benda yang sedang di-hover (untuk fokus kamera, tombol F). */
+  hoveredObject: null as THREE.Object3D | null,
   /** Raycast ke kunci torsi dari koordinat layar (dipakai overlay close-up untuk menarik gagang). */
   hitWrench: (_x: number, _y: number): boolean => false,
 };
@@ -113,6 +121,9 @@ export function animate(obj: THREE.Object3D, steps: TweenStep[], onDone?: () => 
   for (let i = tweens.length - 1; i >= 0; i--) if (tweens[i]!.obj === obj) tweens.splice(i, 1);
   tweens.push({ obj, steps: steps.slice(), t: 0, from: null, onDone });
 }
+export function stopTween(obj: THREE.Object3D) {
+  for (let i = tweens.length - 1; i >= 0; i--) if (tweens[i]!.obj === obj) tweens.splice(i, 1);
+}
 export function runTweens(dt: number) {
   for (let i = tweens.length - 1; i >= 0; i--) {
     const tw = tweens[i]!;
@@ -133,6 +144,23 @@ export function runTweens(dt: number) {
 
 // ---------- Benda padat untuk tabrakan kamera ----------
 export const solids = new Set<THREE.Object3D>();
+/**
+ * Benda yang dibuat tembus pandang saat menghalangi pandangan kamera ke titik fokus
+ * (firewall, engine mount, stand). Kamera tetap tidak menembusnya; hanya tampilannya yang memudar.
+ */
+export const fadeables = new Set<THREE.Object3D>();
+export const fadeable = (o: THREE.Object3D | null) => {
+  if (o) fadeables.add(o);
+};
+export function setFaded(mesh: THREE.Mesh, on: boolean) {
+  if (Boolean(mesh.userData.faded) === on) return;
+  const base = (mesh.userData.fadeBase ??= mesh.material) as THREE.Material;
+  mesh.userData.faded = on;
+  mesh.material = on
+    ? (mesh.userData.fadeMaterial ??= Object.assign(base.clone(), { transparent: true, opacity: 0.15, depthWrite: false }))
+    : base;
+}
+
 /** Ref callback: daftarkan objek sebagai benda padat selama ter-mount. */
 export const solid = (o: THREE.Object3D | null) => {
   if (o) solids.add(o);

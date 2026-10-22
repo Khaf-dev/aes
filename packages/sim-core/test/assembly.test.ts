@@ -68,6 +68,25 @@ describe("detectDefects", () => {
     expect(detectDefects(twoNuts, idealLog(twoNuts))).toEqual([]);
   });
 
+  it("safety wire yang menarik ke arah mengendur tetap tercatat noLock", () => {
+    const ideal = idealLog(steps).records.find((r) => r.stepId === "74-10-01")!;
+    const record = (positiveTension: boolean) => ({
+      ...ideal,
+      performed: ideal.performed.map((p) => (p.kind === "safetyWire" ? { kind: "safetyWire" as const, positiveTension } : p)),
+    });
+    expect(detectDefects(steps, withRecord(idealLog(steps), record(false)))).toMatchObject([
+      { stepId: "74-10-01", kind: "noLock", detail: "Safety wire menarik ke arah mengendur" },
+    ]);
+    expect(detectDefects(steps, withRecord(idealLog(steps), record(true)))).toEqual([]);
+  });
+
+  it("alat yang tidak kembali ke shadow board tercatat sebagai FOD di langkah terakhir dipakai", () => {
+    const log = { ...idealLog(steps), toolsOut: [{ tool: "Kunci torsi", stepId: "74-10-01" }] };
+    expect(detectDefects(steps, log)).toEqual([
+      { stepId: "74-10-01", kind: "fod", detail: "Kunci torsi tidak kembali ke shadow board", signedOff: true },
+    ]);
+  });
+
   it("batas rentang dihitung inklusif", () => {
     const log = withRecord(idealLog(steps), {
       stepId: "24-30-02",

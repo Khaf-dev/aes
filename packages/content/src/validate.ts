@@ -1,10 +1,12 @@
 import type { z } from "zod";
 import {
   ContentPackSchema,
+  IgnitionSchema,
   NetworkSchema,
   TestScenarioSchema,
   type AssemblyStep,
   type ContentPack,
+  type IgnitionData,
   type NetworkData,
   type Part,
   type TestScenarioData,
@@ -19,6 +21,7 @@ export interface Aircraft {
   readonly steps: readonly AssemblyStep[];
   readonly network: NetworkData;
   readonly scenarios: readonly TestScenarioData[];
+  readonly ignition: IgnitionData;
 }
 
 function issues(error: z.ZodError, prefix: string): string[] {
@@ -104,6 +107,7 @@ export interface AircraftInput {
   readonly packs: readonly unknown[];
   readonly network: unknown;
   readonly scenarios: readonly unknown[];
+  readonly ignition: unknown;
 }
 
 /**
@@ -177,7 +181,20 @@ export function validateAircraft(input: AircraftInput): Result<Aircraft> {
   });
   for (const id of duplicates(scenarios.map((s) => s.id))) errors.push(`Skenario duplikat: ${id}`);
 
+  const ignition = IgnitionSchema.safeParse(input.ignition);
+  if (!ignition.success) {
+    errors.push(...issues(ignition.error, "ignition."));
+    return { ok: false, errors };
+  }
+  const stepIds = new Set(steps.map((s) => s.id));
+  for (const m of ignition.data.magnetos) {
+    for (const ref of [m.installStep, m.pLeadStep]) {
+      if (!stepIds.has(ref)) errors.push(`Magneto ${m.id} merujuk langkah yang tidak ada: ${ref}`);
+    }
+  }
+  for (const id of duplicates(ignition.data.magnetos.map((m) => m.id))) errors.push(`Magneto duplikat: ${id}`);
+
   return errors.length === 0
-    ? { ok: true, value: { parts, steps, network: network.data, scenarios } }
+    ? { ok: true, value: { parts, steps, network: network.data, scenarios, ignition: ignition.data } }
     : { ok: false, errors };
 }

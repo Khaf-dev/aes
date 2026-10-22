@@ -136,3 +136,9 @@ export type AssemblyStep = z.infer<typeof AssemblyStepSchema>;
 export type ContentPack = z.infer<typeof ContentPackSchema>;
 export type NetworkData = z.output<typeof NetworkSchema>;
 export type TestScenarioData = z.infer<typeof TestScenarioSchema>;
+
+/** Sistem pengapian: tiap magneto dikaitkan ke langkah pasang dan langkah sambung P-lead-nya. */
+export const IgnitionSchema = z.object({
+  magnetos: z.array(z.object({ id: Id, label: z.string().min(1), installStep: Id, pLeadStep: Id })).min(1),
+});
+export type IgnitionData = z.infer<typeof IgnitionSchema>;

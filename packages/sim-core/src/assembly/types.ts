@@ -31,6 +31,7 @@ export const DEFECT_KINDS = [
   "noLock",
   "wrongPart",
   "misadjusted",
+  "fod",
 ] as const;
 
 export type DefectKind = (typeof DEFECT_KINDS)[number];
@@ -55,7 +56,11 @@ export type PerformedAction =
   | { readonly kind: "install"; readonly partId: string }
   /** `fastener`: nomor pengencang mulai 1 (default 1). Torsi ulang di mur yang sama: yang terakhir berlaku. */
   | { readonly kind: "torque"; readonly value: number; readonly fastener?: number }
-  | { readonly kind: "safetyWire" }
+  /**
+   * `positiveTension`: kawat cenderung mengencangkan pengencang (default true).
+   * Aturan: "Safety wire should always tend to tighten the bolt, nut, or fastener" (FAA, Safety Wire, AFS-850 20-05).
+   */
+  | { readonly kind: "safetyWire"; readonly positiveTension?: boolean }
   | { readonly kind: "adjust"; readonly value: number }
   | { readonly kind: "connect" }
   | { readonly kind: "inspect" };
@@ -70,6 +75,11 @@ export interface StepRecord {
 export interface AssemblyLog {
   /** Urut kronologis. Record terakhir untuk langkah yang sama dianggap hasil akhir (rework). */
   readonly records: readonly StepRecord[];
+  /**
+   * Alat yang belum kembali ke shadow board saat tes dimulai (foreign object debris),
+   * beserta langkah tempat alat itu terakhir dipakai.
+   */
+  readonly toolsOut?: readonly { readonly tool: string; readonly stepId: string }[];
 }
 
 export interface Defect {

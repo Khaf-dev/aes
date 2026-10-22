@@ -93,3 +93,14 @@ describe("validateAircraft: referensi lintas file", () => {
     expect(errors).toMatch(/bus\.main bukan konsumen/);
   });
 });
+
+describe("validateAircraft · pengapian", () => {
+  it("menolak magneto yang merujuk langkah tidak ada", () => {
+    const input = loadAircraftInput();
+    const result = validateAircraft({
+      ...input,
+      ignition: { magnetos: [{ id: "mag.x", label: "Magneto X", installStep: "74-99-01", pLeadStep: "74-10-03" }] },
+    });
+    expect(errorsOf(result).join("\n")).toMatch(/74-99-01/);
+  });
+});

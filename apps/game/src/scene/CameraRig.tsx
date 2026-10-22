@@ -4,7 +4,8 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useGame } from "../state/store.ts";
-import { ROOM, solids, V } from "./shared.ts";
+import { animate, fadeables, rig, ROOM, setFaded, solids, stopTween, V } from "./shared.ts";
+import { TASK_CARDS } from "./Workshop.tsx";
 
 export const HOME_POS = V(2.0, 1.6, 2.5);
 export const HOME_TARGET = V(0.2, 0.95, 0.25);
@@ -20,7 +21,12 @@ const targetBox = new THREE.Box3(V(ROOM.minX + 0.8, 0.3, ROOM.minZ + 0.8), V(ROO
 type Orbit = { target: THREE.Vector3; update(): void };
 
 /** Kontrol kamera yang dipanggil dari keyboard/toolbar. */
-export const cameraApi = { reset: () => {} };
+export const cameraApi = { reset: () => {}, focus: () => {} };
+
+const FOCUS_DIST = 0.45;
+// Semua task card terlihat sekaligus dari atas meja kerja
+const BENCH_LOOK = TASK_CARDS.reduce((c, t) => c.add(t.position), V(0, 0, 0)).divideScalar(TASK_CARDS.length);
+const BENCH_EYE = BENCH_LOOK.clone().add(V(0, 0.75, 0.32));
 
 export function CameraRig() {
   const camera = useThree((s) => s.camera);
@@ -29,7 +35,10 @@ export function CameraRig() {
   const closeup = useGame((s) => s.closeup);
   const torqueMode = useGame((s) => s.torqueMode);
   const spin = useGame((s) => s.spin);
+  const docOpen = useGame((s) => s.document !== null);
   const boxes = useRef<THREE.Box3[]>([]);
+  const fadeBoxes = useRef<{ obj: THREE.Object3D; box: THREE.Box3 }[]>([]);
+  const goal = useRef<{ target: THREE.Vector3; pos: THREE.Vector3 } | null>(null);
   const frame = useRef(0);
   const tmp = useMemo(() => ({ ray: new THREE.Ray(), dir: new THREE.Vector3(), hit: new THREE.Vector3() }), []);
 
@@ -40,7 +49,33 @@ export function CameraRig() {
       controls.current?.target.copy(HOME_TARGET);
       controls.current?.update();
     };
+    // F: kamera mendekat ke benda yang sedang ditunjuk kursor (mis. starter di belakang firewall)
+    cameraApi.focus = () => {
+      const o = rig.hoveredObject, orbit = controls.current;
+      if (!o || !orbit) return;
+      const target = new THREE.Box3().setFromObject(o).getCenter(new THREE.Vector3());
+      const dir = camera.position.clone().sub(orbit.target).normalize();
+      goal.current = { target, pos: target.clone().addScaledVector(dir, FOCUS_DIST) };
+    };
   }, [camera]);
+
+  // Mode dokumen: kamera ke atas meja kerja, lalu kertasnya tampil rata sebagai overlay
+  useEffect(() => {
+    if (!docOpen) return;
+    goal.current = null;
+    const saved = { pos: camera.position.clone(), quat: camera.quaternion.clone(), target: controls.current?.target.clone() };
+    const look = new THREE.PerspectiveCamera(); // lookAt kamera menghadap -z (Object3D biasa menghadap +z)
+    look.position.copy(BENCH_EYE);
+    look.lookAt(BENCH_LOOK);
+    animate(camera, [{ p: BENCH_EYE, q: look.quaternion.clone(), dur: 0.6 }]);
+    return () => {
+      stopTween(camera);
+      camera.position.copy(saved.pos);
+      camera.quaternion.copy(saved.quat);
+      if (saved.target) controls.current?.target.copy(saved.target);
+      controls.current?.update();
+    };
+  }, [docOpen, camera]);
 
   // Mode kunci torsi: scroll menyetel thimble, bukan zoom
   useEffect(() => {
@@ -54,12 +89,20 @@ export function CameraRig() {
     return () => gl.domElement.removeEventListener("wheel", onWheel, { capture: true });
   }, [gl, torqueMode]);
 
-  useFrame(() => {
+  useFrame((_, dt) => {
     const orbit = controls.current;
-    if (!orbit || useGame.getState().closeup) return;
+    const g = useGame.getState();
+    if (!orbit || g.closeup || g.document) return;
     // Kotak benda padat dihitung ulang berkala: part bisa berpindah (meja ↔ mesin)
     if (frame.current++ % 30 === 0) {
       boxes.current = [...solids].map((o) => new THREE.Box3().setFromObject(o).expandByScalar(0.06));
+      fadeBoxes.current = [...fadeables].map((obj) => ({ obj, box: new THREE.Box3().setFromObject(obj) }));
+    }
+    if (goal.current) {
+      const k = 1 - Math.exp(-dt * 8);
+      orbit.target.lerp(goal.current.target, k);
+      camera.position.lerp(goal.current.pos, k);
+      if (camera.position.distanceToSquared(goal.current.pos) < 1e-6) goal.current = null;
     }
     targetBox.clampPoint(orbit.target, orbit.target);
     roomBox.clampPoint(camera.position, camera.position);
@@ -77,12 +120,19 @@ export function CameraRig() {
       roomBox.clampPoint(camera.position, camera.position);
       if (!moved) break;
     }
+    // Benda yang menghalangi garis pandang kamera → titik fokus dibuat tembus pandang (tetap padat)
+    const dist = camera.position.distanceTo(orbit.target);
+    tmp.ray.set(camera.position, tmp.dir.subVectors(orbit.target, camera.position).normalize());
+    for (const { obj, box } of fadeBoxes.current) {
+      const blocks = !box.containsPoint(orbit.target) && tmp.ray.intersectBox(box, tmp.hit) !== null && tmp.hit.distanceTo(camera.position) < dist;
+      obj.traverse((m) => { if (m instanceof THREE.Mesh) setFaded(m, blocks); });
+    }
   });
 
   return (
     <OrbitControls
-      ref={controls as never} makeDefault enabled={!closeup} enableDamping autoRotate={spin && !closeup} autoRotateSpeed={0.9}
-      minDistance={0.35} maxDistance={6.5} minPolarAngle={0.05} maxPolarAngle={Math.PI * 0.94}
+      ref={controls as never} makeDefault enabled={!closeup && !docOpen} enableDamping autoRotate={spin && !closeup && !docOpen} autoRotateSpeed={0.9}
+      minDistance={0.2} maxDistance={6.5} minPolarAngle={0.05} maxPolarAngle={Math.PI * 0.94}
     />
   );
 }

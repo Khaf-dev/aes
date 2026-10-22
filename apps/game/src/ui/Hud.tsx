@@ -1,18 +1,33 @@
 /** Overlay mode rakit: strip task card, catatan tempel, hint, toolbar, label hover, dial kunci torsi, lab cahaya. */
 import { useEffect, useRef, useState } from "react";
-import { PARTS, partDef } from "../data/parts.ts";
+import { partDef } from "../data/parts.ts";
+import { requiresWire } from "../logic/assemblyLog.ts";
 import { WRENCH_MAX, WRENCH_MIN } from "../logic/clickWrench.ts";
-import { stage } from "../logic/rakit.ts";
+import { stage, type Stage } from "../logic/rakit.ts";
 import { cameraApi } from "../scene/CameraRig.tsx";
 import { exposureFromSlider, LENS_RADIUS } from "../scene/shared.ts";
 import { useGame } from "../state/store.ts";
 
 const fmt = (n: number, d = 0) => n.toLocaleString("id-ID", { minimumFractionDigits: d, maximumFractionDigits: d });
 
+const STAGE_TEXT: Record<Stage, string> = {
+  install: "Pasang {part} ke pad",
+  nuts: "Pasang ring & mur di stud (klik stud)",
+  torque: "Kencangkan mur pengikat (T: kunci torsi)",
+  wire: "Pasang safety wire (W: tang safety wire)",
+  plead: "Sambungkan P-lead (klik terminal di belakang magneto)",
+  signoff: "Sign-off task card di meja kerja",
+  done: "Task card sudah di-sign-off",
+};
+
 function TaskStrip() {
   const focusPart = useGame((s) => s.focusPart);
-  const step = useGame((s) => stage(s.rakit, s.focusPart));
-  const [code, text] = partDef(focusPart).stages[step] ?? PARTS[0]!.stages[0]!;
+  const def = partDef(focusPart);
+  const needsWire = requiresWire(def.stepId);
+  const current = useGame((s) => stage(s.rakit, s.focusPart, needsWire));
+  const order: Stage[] = ["install", "nuts", "torque", ...(needsWire ? ["wire" as const] : []), ...(def.pLead ? ["plead" as const] : []), "signoff"];
+  const code = current === "done" ? `TC ${def.stepId} · SELESAI` : `TC ${def.stepId} · LANGKAH ${order.indexOf(current) + 1} / ${order.length}`;
+  const text = STAGE_TEXT[current].replace("{part}", def.name.toLowerCase());
   return (
     <div className="strip" role="note" aria-live="polite">
       <b>{code}</b>
@@ -40,6 +55,7 @@ function Toast() {
 function Hint() {
   const held = useGame((s) => s.rakit.held);
   const torqueMode = useGame((s) => s.torqueMode);
+  const wireMode = useGame((s) => s.wireMode);
   const lensOn = useGame((s) => s.lensOn);
   const text = lensOn
     ? "Arahkan lensa ke mesin untuk melihat bagian dalam · X: tutup lensa"
@@ -47,12 +63,15 @@ function Hint() {
     ? `Klik pad yang menyala untuk memasang ${partDef(held).name.toLowerCase()} · Esc: taruh kembali`
     : torqueMode
       ? "Arahkan ke mur · Scroll: setel dial · Klik mur: buka close-up kunci torsi · T: kembalikan ke shadow board"
-      : "Klik part di meja untuk mengambil · Klik stud: pasang mur · Klik mur: lepas mur · Drag: putar kamera";
+      : wireMode
+        ? "Klik mur pertama lalu pasangannya untuk memasang safety wire · Klik mur berkawat: potong kawat · W: kembalikan tang"
+        : "Klik part di meja untuk mengambil · Klik stud: pasang mur · Klik mur: lepas mur · Klik meja kerja: task card · F: dekatkan kamera ke benda yang ditunjuk";
   return <p className="hint">{text}</p>;
 }
 
 function Toolbar() {
   const torqueMode = useGame((s) => s.torqueMode);
+  const wireMode = useGame((s) => s.wireMode);
   const lensOn = useGame((s) => s.lensOn);
   const spin = useGame((s) => s.spin);
   const held = useGame((s) => s.rakit.held);
@@ -64,10 +83,14 @@ function Toolbar() {
       <button type="button" aria-pressed={torqueMode} onClick={() => useGame.getState().setTorqueMode(!torqueMode)}>
         <kbd>T</kbd>Kunci torsi
       </button>
+      <button type="button" aria-pressed={wireMode} onClick={() => useGame.getState().setWireMode(!wireMode)}>
+        <kbd>W</kbd>Tang safety wire
+      </button>
       <button type="button" aria-pressed={spin} onClick={() => useGame.getState().setSpin(!spin)}>
         <kbd>P</kbd>Putar otomatis 360°
       </button>
       <button type="button" onClick={() => cameraApi.reset()}><kbd>R</kbd>Reset kamera</button>
+      <button type="button" onClick={() => useGame.getState().runTest()}><kbd>G</kbd>Tes darat</button>
       {held && <button type="button" onClick={() => useGame.getState().putBack()}><kbd>Esc</kbd>Taruh kembali</button>}
     </div>
   );
@@ -88,6 +111,28 @@ function HoverLabel() {
     <div className="label" ref={ref} hidden={!hover}>
       <b>{hover?.code}</b>
       <span>{hover?.name}</span>
+    </div>
+  );
+}
+
+/**
+ * Arah lilitan safety wire dipilih engineer sendiri. Sistem tidak memberi tahu mana yang benar:
+ * aturannya (kawat harus cenderung mengencangkan) ada di handbook, akibatnya baru terasa saat tes.
+ */
+function WirePrompt() {
+  const pending = useGame((s) => s.wirePending);
+  if (!pending) return null;
+  const finish = useGame.getState().finishWire;
+  return (
+    <div className="wire-prompt" role="dialog" aria-modal="true" aria-labelledby="wireTitle">
+      <b id="wireTitle">SAFETY WIRE · MUR #{pending.a + 1} → #{pending.b + 1}</b>
+      <span>Lilit kawat di mur #{pending.b + 1}, dilihat dari ujung stud:</span>
+      <div>
+        <button type="button" onClick={() => finish(true)}>↻ Searah jarum jam</button>
+        <button type="button" onClick={() => finish(false)}>↺ Berlawanan jarum jam</button>
+        {/* Fokus awal di Batal supaya tidak memberi petunjuk arah yang benar */}
+        <button type="button" autoFocus onClick={() => finish(null)}>Batal</button>
+      </div>
     </div>
   );
 }
@@ -115,6 +160,7 @@ function LensCursor() {
 function TorqueDial() {
   const setting = useGame((s) => s.setting);
   const active = useGame((s) => s.torqueMode);
+  if (!active) return null;
   const angle = -135 + ((setting - WRENCH_MIN) / (WRENCH_MAX - WRENCH_MIN)) * 270;
   return (
     <div className={`tool${active ? " active" : ""}`}>
@@ -184,6 +230,7 @@ export function Hud() {
       <Hint />
       <HoverLabel />
       <LensCursor />
+      <WirePrompt />
     </>
   );
 }

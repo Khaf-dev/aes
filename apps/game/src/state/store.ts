@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import { clampSetting, openSession, WRENCH_MIN, type Feel, type PullState } from "../logic/clickWrench.ts";
 import * as rakit from "../logic/rakit.ts";
-import { PARTS, partDef } from "../data/parts.ts";
+import { PARTS, PLAYABLE_STEP_IDS, partDef } from "../data/parts.ts";
+import { checklist } from "../logic/assemblyLog.ts";
+import { runGroundTest, type TestSheet } from "../logic/groundTest.ts";
 
 export interface NutRef {
   readonly part: string;
@@ -32,6 +34,14 @@ interface GameState {
   /** Part yang terakhir disentuh: strip task card mengikuti part ini. */
   readonly focusPart: string;
   readonly torqueMode: boolean;
+  /** Tang safety wire di tangan; `wireFrom` = mur pertama yang dipilih, `wirePending` = menunggu pilihan arah lilitan. */
+  readonly wireMode: boolean;
+  readonly wireFrom: NutRef | null;
+  readonly wirePending: { readonly part: string; readonly a: number; readonly b: number } | null;
+  /** Task card yang sedang dibuka di mode dokumen (id langkah). */
+  readonly document: string | null;
+  /** Laporan tes darat terakhir yang sedang dibaca. */
+  readonly testSheet: TestSheet | null;
   /** Lensa x-ray aktif, dan apakah kursor sedang di atas mesin (hanya di situ kulit mesin dibuka). */
   readonly lensOn: boolean;
   readonly lensOverEngine: boolean;
@@ -55,7 +65,19 @@ interface GameState {
   installOnPad(padFor: string): void;
   clickStud(nut: NutRef): void;
   clickNut(nut: NutRef): void;
+  togglePLead(part: string): void;
   setTorqueMode(on: boolean): void;
+  setWireMode(on: boolean): void;
+  wireClickNut(nut: NutRef): void;
+  finishWire(positive: boolean | null): void;
+  openDocument(stepId: string): void;
+  /** Klik meja kerja: buka task card yang paling relevan (part yang sedang dikerjakan, yang belum ditandatangani). */
+  openBench(): void;
+  runTest(): void;
+  closeTest(): void;
+  closeDocument(): void;
+  toggleCheck(stepId: string, index: number): void;
+  signOff(stepId: string): void;
   setLens(on: boolean): void;
   setSpin(on: boolean): void;
   aimWrench(nut: NutRef): void;
@@ -82,6 +104,11 @@ export const useGame = create<GameState>()((set, get) => {
     rakit: rakit.initialRakit(),
     focusPart: PARTS[0]!.assetId,
     torqueMode: false,
+    wireMode: false,
+    wireFrom: null,
+    wirePending: null,
+    document: null,
+    testSheet: null,
     lensOn: false,
     lensOverEngine: false,
     spin: false,
@@ -99,18 +126,65 @@ export const useGame = create<GameState>()((set, get) => {
     installOnPad: (padFor) => apply(rakit.install(get().rakit, padFor)),
     clickStud: ({ part, index }) => apply(rakit.installNut(get().rakit, part, index), part),
     clickNut: ({ part, index }) => apply(rakit.removeNut(get().rakit, part, index), part),
+    togglePLead: (part) => apply(rakit.togglePLead(get().rakit, part), part),
 
     setTorqueMode: (on) => {
       const first = on ? firstInstalledNut(get().rakit) : null;
-      set({ torqueMode: on, wrenchAt: first });
+      // Satu alat di tangan: kunci torsi menggantikan tang safety wire
+      set({ torqueMode: on, wrenchAt: first, ...(on ? { wireMode: false, wireFrom: null, wirePending: null } : {}) });
       if (on && !first) get().showToast("Belum ada mur terpasang untuk dikencangkan. Kunci torsi tetap di shadow board.");
     },
+    setWireMode: (on) => set({ wireMode: on, wireFrom: null, wirePending: null, ...(on ? { torqueMode: false, wrenchAt: null } : {}) }),
+    wireClickNut: (nut) => {
+      const { rakit: s, wireFrom } = get();
+      if (rakit.isWired(s, nut.part, nut.index)) { apply(rakit.cutWire(s, nut.part, nut.index), nut.part); set({ wireFrom: null }); return; }
+      if (!wireFrom || wireFrom.part !== nut.part) {
+        set({ wireFrom: nut, focusPart: nut.part });
+        get().showToast(`Kawat dimasukkan ke mur #${nut.index + 1}. Klik mur pasangannya.`);
+        return;
+      }
+      if (wireFrom.index === nut.index) return;
+      set({ wirePending: { part: nut.part, a: wireFrom.index, b: nut.index }, wireFrom: null });
+    },
+    finishWire: (positive) => {
+      const pending = get().wirePending;
+      set({ wirePending: null });
+      if (pending && positive !== null) apply(rakit.installWire(get().rakit, pending.part, pending.a, pending.b, positive), pending.part);
+    },
+    openBench: () => {
+      const { rakit: s, focusPart } = get();
+      const focus = partDef(focusPart);
+      const mine = [focus.stepId, ...(focus.pLead ? [focus.pLead.stepId] : [])];
+      const unsigned = (id: string) => !s.signoff[id]?.signed;
+      get().openDocument(mine.find(unsigned) ?? PLAYABLE_STEP_IDS.find(unsigned) ?? mine[0]!);
+    },
+    openDocument: (document) => {
+      const part = PARTS.find((p) => p.stepId === document);
+      set({ document, hover: null, spin: false, ...(part ? { focusPart: part.assetId } : {}) });
+    },
+    closeDocument: () => set({ document: null }),
+    runTest: () => {
+      // Alat yang masih di tangan / terpasang di mur saat tes dimulai = FOD. Alat tidak dikembalikan otomatis.
+      const g = get();
+      const toolsOut = [
+        ...(g.torqueMode && g.wrenchAt ? [{ tool: "Kunci torsi", stepId: partDef(g.wrenchAt.part).stepId }] : []),
+        ...(g.wireMode ? [{ tool: "Tang safety wire", stepId: partDef(g.focusPart).stepId }] : []),
+      ];
+      set({ testSheet: runGroundTest(g.rakit, toolsOut), hover: null, spin: false, closeup: null, wireFrom: null, wirePending: null });
+    },
+    closeTest: () => set({ testSheet: null }),
+    toggleCheck: (stepId, index) => set({ rakit: rakit.toggleCheck(get().rakit, stepId, index, checklist(stepId).length) }),
+    signOff: (stepId) => set({ rakit: rakit.signOff(get().rakit, stepId, checklist(stepId).length) }),
     setLens: (lensOn) => set({ lensOn, lensOverEngine: false, hover: null }),
     setSpin: (spin) => set({ spin }),
     aimWrench: (nut) => set({ wrenchAt: nut }),
     stepSetting: (delta) => set({ setting: clampSetting(get().setting + delta) }),
 
     openCloseup: (nut) => {
+      if (rakit.isWired(get().rakit, nut.part, nut.index)) {
+        get().showToast(`Mur #${nut.index + 1} sudah diikat safety wire. Potong kawatnya dulu kalau mau ditorsi ulang.`, true);
+        return;
+      }
       const torque = get().rakit.nuts[nut.part]?.[nut.index]?.torque ?? null;
       pull.state = openSession(torque);
       pull.holding = false;

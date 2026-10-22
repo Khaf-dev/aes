@@ -13,9 +13,15 @@ Tambahkan `?debug` di URL untuk kait uji otomatis (`window.__aes`).
 ## Isi mode rakit
 
 - Hanggar malam dengan lampu satuan fisik (lumen, lux, decay 2) dan headlamp mekanik di kamera.
-- Kamera orbit berbatas ruangan, tidak menembus benda padat.
+- Kamera orbit berbatas ruangan, tidak menembus benda padat. Benda yang menghalangi pandangan (firewall, engine mount, stand) jadi tembus pandang; F mendekatkan kamera ke benda yang ditunjuk.
+- Klik meja kerja membuka task card (tab ke semua task card).
 - Ambil magneto atau starter dari meja part, pasang ke pad lewat bayangan pemasangan (pad lain menolak), pasang ring & mur di stud.
 - Mode kunci torsi (T) dan close-up hybrid: kunci 3D dari asset pipeline + skala mikrometer di kaca pembesar.
+- Tang safety wire (W): klik mur pertama lalu pasangannya, pilih arah lilitan sendiri; klik mur berkawat untuk memotong.
+- Mode dokumen: klik task card di meja kerja untuk checklist (centang + paraf sendiri) dan tanda tangan. Tidak memeriksa apa pun.
+- Magneto kiri & kanan, starter; P-lead magneto disambung lewat klik terminal di belakang magneto.
+- FOD: alat yang belum dikembalikan ke shadow board (T/W masih aktif) saat tes dimulai jadi temuan FOD di laporan.
+- Tes darat (G): ground power-up (listrik) + start mesin dan mag check (pengapian) di sim-core, hasilnya laporan kertas kuning dengan clue task card.
 - Lensa x-ray (X): kulit mesin terbuka di lingkaran kursor, hanya komponen dalam yang bisa dipilih.
 - Area kerja: meja kerja + task card, shadow board (kunci torsi tergantung di slotnya), papan tulis, troli, APAR,
   lampu meja; tag inspeksi gantung; putar otomatis kamera (P).

@@ -104,7 +104,9 @@ export function detectDefects(steps: readonly StepSpec[], log: AssemblyLog): Def
           break;
         }
         case "safetyWire": {
-          if (next("safetyWire") === undefined) add("noLock", "Safety wire tidak dipasang");
+          const done = next("safetyWire");
+          if (done === undefined) add("noLock", "Safety wire tidak dipasang");
+          else if (done.positiveTension === false) add("noLock", "Safety wire menarik ke arah mengendur");
           break;
         }
         case "adjust": {
@@ -129,6 +131,15 @@ export function detectDefects(steps: readonly StepSpec[], log: AssemblyLog): Def
         }
       }
     }
+  }
+
+  for (const { tool, stepId } of log.toolsOut ?? []) {
+    defects.push({
+      stepId,
+      kind: "fod",
+      detail: `${tool} tidak kembali ke shadow board`,
+      signedOff: recorded.get(stepId)?.record.signedOff ?? false,
+    });
   }
 
   return defects;
