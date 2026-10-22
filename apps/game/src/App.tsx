@@ -19,6 +19,7 @@ import { releasePull, startPull } from "./state/pullActions.ts";
 import { pull, useGame } from "./state/store.ts";
 import { Closeup } from "./ui/Closeup.tsx";
 import { DocumentView } from "./ui/DocumentView.tsx";
+import { HandbookView } from "./ui/HandbookView.tsx";
 import { TestReport } from "./ui/TestReport.tsx";
 import { Hud } from "./ui/Hud.tsx";
 
@@ -38,6 +39,8 @@ function useKeyboard() {
       const k = e.key.toLowerCase();
       if (k === "h") { g.setLights({ headlamp: !g.lights.headlamp }); return; }
       if (g.testSheet) { if (e.key === "Escape") g.closeTest(); return; }
+      if (g.handbook) { if (e.key === "Escape" || k === "b") g.closeHandbook(); return; }
+      if (k === "b" && !g.closeup && !g.wirePending) { g.openHandbook(); return; }
       if (g.document) { if (e.key === "Escape") g.closeDocument(); return; }
       if (g.wirePending) { if (e.key === "Escape") g.finishWire(null); return; }
       if (g.closeup) {
@@ -109,6 +112,7 @@ export function App() {
       <Hud />
       <Closeup />
       <DocumentView />
+      <HandbookView />
       <TestReport />
     </>
   );

@@ -104,3 +104,25 @@ describe("validateAircraft · pengapian", () => {
     expect(errorsOf(result).join("\n")).toMatch(/74-99-01/);
   });
 });
+
+describe("validateAircraft · handbook", () => {
+  const input = loadAircraftInput();
+  const hb = input.handbook as { sources: unknown[]; entries: { id: string }[] };
+  const entry = { id: "uji", title: "Uji", stepId: "74-10-01", about: [{ text: "x", source: "faa-tidak-ada", ref: "hlm. 1" }], notes: [] };
+
+  it("menolak kalimat yang menunjuk sumber tidak ada dan langkah ganda", () => {
+    const errors = errorsOf(validateAircraft({ ...input, handbook: { ...hb, entries: [...hb.entries, entry] } })).join("\n");
+    expect(errors).toMatch(/sumber yang tidak ada: faa-tidak-ada/);
+    expect(errors).toMatch(/74-10-01 punya lebih dari satu entri/);
+  });
+
+  it("menolak kalimat tanpa rujukan halaman/paragraf", () => {
+    const bad = { ...entry, about: [{ text: "x", source: "faa-amtp-ch4" }] };
+    expect(errorsOf(validateAircraft({ ...input, handbook: { ...hb, entries: [bad] } })).join("\n")).toMatch(/about\.0\.ref/);
+  });
+
+  it("menolak entri yang bukan langkah maupun topik", () => {
+    const bad = { ...entry, stepId: undefined, about: [{ text: "x", source: "faa-amtp-ch4", ref: "hlm. 4-1" }] };
+    expect(errorsOf(validateAircraft({ ...input, handbook: { ...hb, entries: [bad] } })).join("\n")).toMatch(/stepId atau action/);
+  });
+});

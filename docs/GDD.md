@@ -335,9 +335,11 @@ Belum dikerjakan, dibahas dulu sebelum digarap.
 | ATA 24 dikerjakan "shift sebelumnya" | Baterai dan kabel belum bisa dirakit di hanggar; di tes darat langkahnya dianggap selesai dan benar |
 | Laporan tes belum lengkap | Belum ada grafik black box, arsip laporan, dan event logbook (`TestFlightFailed`/`Passed`) |
 | Paraf engineer masih "RK" | Inisial tetap sampai profil engineer (logbook) dibuat |
-| Buku panduan belum dibuat | Desainnya ada di bagian "Buku panduan engineer". Scope versi pertama dibahas dulu sebelum digarap |
+| Buku panduan baru versi pertama | Belum ada teori panjang, glosarium, pencarian, unlock bertahap, buku fisik di meja kerja, dan tautan dari clue laporan tes ke halaman handbook |
+| Teks AC 43.13-1B par. 7-87 dan 7-123/7-124 belum terbaca | PDF Bab 7 yang bisa dibaca berhenti di par. 7-72. Aturan pigtail, jumlah pengencang per rangkaian kawat, dan diameter kawat belum masuk handbook |
+| Catatan SAIB magneto dipakai sebagai pelajaran umum | Buletinnya khusus magneto ganda seri D2000/D3000 di mesin Lycoming; di handbook disebut terang |
 | Benda di belakang pelat firewall masih susah dijangkau | Sudah dibantu fade + F fokus. Belum ada pilihan sudut kamera siap pakai (preset) per area kerja |
-| Mode dokumen baru untuk task card | Handbook, laporan investigasi, dan logbook belum punya tampilan dokumen |
+| Mode dokumen baru untuk task card, handbook, dan laporan tes | Logbook belum punya tampilan dokumen |
 | Jumlah mur pengikat magneto dan starter belum bersumber | `fasteners: 2` di langkah 74-10-01 dan 80-10-01 diambil dari model hasil pipeline (dua telinga flange), bukan dari dokumen teknis |
 | Langkah starter belum terhubung ke kabel starter | 80-10-01 (pasang starter) belum jadi prasyarat 24-30-04 (sambung kabel starter). Urutan antarbab perlu dirujuk dulu |
 | Bundel JS game 1,4 MB | Belum dipecah (code splitting); termasuk three.js, drei, dan Zod untuk validasi konten saat jalan |
@@ -373,4 +375,5 @@ Keputusan yang sudah diambil:
 - [x] Mur magneto diamankan lock washer, bukan safety wire (FAA SAIB NE-08-26R3), jadi langkah 74-10-01/02 tidak mewajibkan safety wire.
 - [x] Tes darat pertama (22 Oktober 2026): tombol tes di hanggar menjalankan skenario ground power-up di sim-core dan menampilkan laporan kertas kuning (hasil, gejala, penelusuran, clue task card, sistem yang belum diuji). ATA 24 dianggap dikerjakan benar oleh shift sebelumnya; efek starter hanya "tidak terpasang"; pengapian dicatat untuk tes berikutnya.
 - [x] Perbaikan UX dari playtest (22 Oktober 2026): klik meja kerja membuka task card yang paling relevan (part yang sedang dikerjakan, yang belum ditandatangani) dengan tab ke semua task card; dial kunci torsi di HUD hanya tampil saat kunci torsi dipakai; pelat firewall, engine mount, dan stand jadi tembus pandang saat menghalangi pandangan kamera (tetap padat untuk tabrakan kamera); tombol F mendekatkan kamera ke benda yang ditunjuk; batang tipis dan tag kertas tidak menutupi part di belakangnya; stud/mur yang tertutup badan part-nya sendiri tetap bisa diklik.
+- [x] Buku panduan versi pertama (22 Oktober 2026): tombol B (atau tombol di task card) membuka halaman sesuai konteks: task card yang sedang dibaca, part di tangan, atau langkah berikutnya part yang dikerjakan. Satu halaman per task card plus topik umum (kunci torsi, safety wire) yang muncul di "Lihat juga" bila langkahnya punya aksi itu. Prosedur dan torsi dirender dari data langkah; penjelasan dan WARNING/CAUTION/NOTE ada di `data/handbook/`, tiap kalimat wajib menunjuk sumber dan halaman/paragraf (divalidasi). Sumber: FAA PHAK Bab 7, FAA-H-8083-32B Bab 4 dan 5, AC 43.13-1B Bab 7, lembar FAA "Safety Wire", SAIB NE-08-26R3. Narasi ditulis di JSON, belum MDX.
 - [x] Torsi dicatat per pengencang: aksi torsi di data konten punya `fasteners`, dan tiap mur punya catatan torsinya sendiri, supaya laporan investigasi bisa menunjuk mur mana yang salah.

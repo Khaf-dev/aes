@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { clampSetting, openSession, WRENCH_MIN, type Feel, type PullState } from "../logic/clickWrench.ts";
 import * as rakit from "../logic/rakit.ts";
 import { PARTS, PLAYABLE_STEP_IDS, partDef } from "../data/parts.ts";
-import { checklist } from "../logic/assemblyLog.ts";
+import { checklist, handbookEntryFor } from "../logic/assemblyLog.ts";
 import { runGroundTest, type TestSheet } from "../logic/groundTest.ts";
 
 export interface NutRef {
@@ -40,6 +40,8 @@ interface GameState {
   readonly wirePending: { readonly part: string; readonly a: number; readonly b: number } | null;
   /** Task card yang sedang dibuka di mode dokumen (id langkah). */
   readonly document: string | null;
+  /** Halaman buku panduan yang sedang dibuka (id entri), tampil di atas task card. */
+  readonly handbook: string | null;
   /** Laporan tes darat terakhir yang sedang dibaca. */
   readonly testSheet: TestSheet | null;
   /** Lensa x-ray aktif, dan apakah kursor sedang di atas mesin (hanya di situ kulit mesin dibuka). */
@@ -76,6 +78,9 @@ interface GameState {
   runTest(): void;
   closeTest(): void;
   closeDocument(): void;
+  /** Tanpa id: halaman sesuai konteks (task card yang dibaca, part di tangan, part yang dikerjakan). */
+  openHandbook(entryId?: string): void;
+  closeHandbook(): void;
   toggleCheck(stepId: string, index: number): void;
   signOff(stepId: string): void;
   setLens(on: boolean): void;
@@ -108,6 +113,7 @@ export const useGame = create<GameState>()((set, get) => {
     wireFrom: null,
     wirePending: null,
     document: null,
+    handbook: null,
     testSheet: null,
     lensOn: false,
     lensOverEngine: false,
@@ -163,6 +169,11 @@ export const useGame = create<GameState>()((set, get) => {
       set({ document, hover: null, spin: false, ...(part ? { focusPart: part.assetId } : {}) });
     },
     closeDocument: () => set({ document: null }),
+    openHandbook: (entryId) => {
+      const g = get();
+      set({ handbook: entryId ?? handbookEntryFor(g.rakit, g.focusPart, g.document), hover: null, spin: false });
+    },
+    closeHandbook: () => set({ handbook: null }),
     runTest: () => {
       // Alat yang masih di tangan / terpasang di mur saat tes dimulai = FOD. Alat tidak dikembalikan otomatis.
       const g = get();

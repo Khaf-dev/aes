@@ -142,3 +142,29 @@ export const IgnitionSchema = z.object({
   magnetos: z.array(z.object({ id: Id, label: z.string().min(1), installStep: Id, pLeadStep: Id })).min(1),
 });
 export type IgnitionData = z.infer<typeof IgnitionSchema>;
+
+/** Kalimat handbook: wajib menunjuk sumber dan lokasinya (halaman/paragraf), tidak boleh dikarang. */
+const Cited = { text: z.string().min(1), source: Id, ref: z.string().min(1) };
+
+/**
+ * Buku panduan engineer. Prosedur dan nilai torsi TIDAK ditulis di sini: dirender dari langkah di paket konten.
+ * Di sini hanya penjelasan dan catatan WARNING/CAUTION/NOTE, masing-masing dengan rujukan.
+ */
+export const HandbookSchema = z.object({
+  sources: z.array(z.object({ id: Id, title: z.string().min(1), url: z.url() })).min(1),
+  entries: z.array(
+    z
+      .object({
+        id: Id,
+        title: z.string().min(1),
+        /** Halaman untuk satu langkah (task card)... */
+        stepId: Id.optional(),
+        /** ...atau topik umum yang ikut tampil di setiap langkah yang punya aksi ini. */
+        action: z.enum(["install", "torque", "safetyWire", "adjust", "connect", "inspect"]).optional(),
+        about: z.array(z.object(Cited)).min(1),
+        notes: z.array(z.object({ level: z.enum(["WARNING", "CAUTION", "NOTE"]), ...Cited })),
+      })
+      .refine((e) => (e.stepId === undefined) !== (e.action === undefined), "isi tepat satu: stepId atau action"),
+  ),
+});
+export type HandbookData = z.infer<typeof HandbookSchema>;

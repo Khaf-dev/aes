@@ -89,6 +89,7 @@ function Toolbar() {
       <button type="button" aria-pressed={spin} onClick={() => useGame.getState().setSpin(!spin)}>
         <kbd>P</kbd>Putar otomatis 360°
       </button>
+      <button type="button" onClick={() => useGame.getState().openHandbook()}><kbd>B</kbd>Buku panduan</button>
       <button type="button" onClick={() => cameraApi.reset()}><kbd>R</kbd>Reset kamera</button>
       <button type="button" onClick={() => useGame.getState().runTest()}><kbd>G</kbd>Tes darat</button>
       {held && <button type="button" onClick={() => useGame.getState().putBack()}><kbd>Esc</kbd>Taruh kembali</button>}

@@ -211,6 +211,34 @@
   }
   .doc-tabs button[aria-current="true"] { background: #F3ECDD; font-weight: 700; border-color: var(--ink); }
   .doc-tabs button:focus-visible { outline: 2px solid var(--select); outline-offset: 2px; }
+  .hb { z-index: 13; justify-content: flex-start; }
+  /* Daftar isi: satu baris geser di layar sempit, kolom di kiri halaman di desktop */
+  .hb .doc-tabs { width: min(680px, 100%); flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; flex-shrink: 0; }
+  .hb .doc-tabs button { flex-shrink: 0; text-align: left; }
+  @media (min-width: 960px) {
+    .hb { flex-direction: row; align-items: flex-start; justify-content: center; }
+    .hb .doc-tabs { flex-direction: column; width: 240px; overflow: visible; }
+    .hb .doc-tabs button { min-height: 44px; padding: 6px 12px; }
+  }
+  .doc-paper { box-sizing: border-box; }
+  .doc-paper.hb-paper { width: min(680px, 100%); transform: none; flex-shrink: 0; }
+  .hb-paper section p { font-size: 14px; line-height: 1.5; margin: 8px 0; }
+  .hb-paper h3 { font-size: 14px; margin: 16px 0 6px; letter-spacing: 0.02em; }
+  .hb-cite { font-size: 10px; color: #5a554b; white-space: nowrap; }
+  .hb-note { border: 2px solid var(--ink); padding: 8px 12px; margin: 10px 0; }
+  .hb-note b { font-size: 13px; letter-spacing: 0.06em; }
+  .hb-note p { margin: 4px 0 0; font-size: 14px; line-height: 1.5; }
+  .hb-note.warning { border-color: #B3261E; background: #F6DCD5; }
+  .hb-note.warning b { color: #8E1C16; }
+  .hb-note.caution { border-color: #9A6A00; background: #F5E6BC; }
+  .doc-paper .hb-steps { list-style: decimal; margin: 0; padding-left: 22px; font-size: 14px; line-height: 1.6; }
+  .hb-see button, .hb-paper .doc-close {
+    min-height: 40px; padding: 0 14px; margin: 0 8px 0 0; font: inherit; font-size: 14px; cursor: pointer; border-radius: 3px;
+    border: 1.5px dashed #6E675A; background: transparent; color: var(--ink);
+  }
+  .hb-paper footer.hb-sources { display: block; border-top: 1.5px solid var(--ink); margin-top: 16px; padding-top: 4px; }
+  .doc-paper .hb-sources ol { list-style: decimal; margin: 0 0 12px; padding-left: 22px; font-size: 12px; line-height: 1.5; }
+  .hb-sources a { color: #1F3A8A; }
   .doc-paper {
     width: min(560px, 100%); background: #F3ECDD; color: var(--ink); font-family: var(--font-type);
     padding: 22px 26px 18px; transform: rotate(-0.6deg); box-shadow: 0 18px 40px rgba(0,0,0,0.6);

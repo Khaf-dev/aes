@@ -9,11 +9,12 @@ import ata74 from "@aes/content/data/packs/ata-74.json";
 import ata80 from "@aes/content/data/packs/ata-80.json";
 import groundPowerUp from "@aes/content/data/scenarios/ground-power-up.json";
 import ignition from "@aes/content/data/ignition/aes-1-ignition.json";
+import handbook from "@aes/content/data/handbook/aes-1-handbook.json";
 import { detectDefects, type AssemblyLog, type Defect, type PerformedAction, type StepRecord, type StepSpec } from "@aes/sim-core";
-import { PARTS, PLAYABLE_STEP_IDS, type PartDef } from "../data/parts.ts";
-import type { RakitState } from "./rakit.ts";
+import { PARTS, PLAYABLE_STEP_IDS, partDef, type PartDef } from "../data/parts.ts";
+import { stage, type RakitState } from "./rakit.ts";
 
-const aircraft = validateAircraft({ packs: [ata24, ata74, ata80], network, scenarios: [groundPowerUp], ignition });
+const aircraft = validateAircraft({ packs: [ata24, ata74, ata80], network, scenarios: [groundPowerUp], ignition, handbook });
 if (!aircraft.ok) throw new Error(`Data pesawat tidak valid:\n${aircraft.errors.join("\n")}`);
 /** Data pesawat AES-1 yang sudah divalidasi: semua langkah, jaringan listrik, skenario tes. */
 export const AIRCRAFT = aircraft.value;
@@ -41,7 +42,7 @@ const stepOf = (stepId: string) => {
 export const requiresWire = (stepId: string) => stepOf(stepId).actions.some((a) => a.kind === "safetyWire");
 
 const valueText = (range: readonly [number, number] | null, unit: string) =>
-  range ? `${range[0]}–${range[1]} ${unit}` : "belum ada nilai bersumber, lihat handbook";
+  range ? `${range[0]}–${range[1]} ${unit}` : "belum ada nilai bersumber";
 
 const partName = (contentId: string) => (AIRCRAFT.parts.find((p) => p.id === contentId)?.name ?? contentId).toLowerCase();
 
@@ -80,3 +81,22 @@ export function assemblyLog(s: RakitState): AssemblyLog {
 
 /** Defect tersembunyi yang akan muncul saat tes. Tidak ditampilkan ke pemain di mode rakit. */
 export const hiddenDefects = (s: RakitState): Defect[] => detectDefects(STEPS, assemblyLog(s));
+
+/** Buku panduan: penjelasan bersumber per langkah + topik umum (torsi, safety wire). */
+export const HANDBOOK = AIRCRAFT.handbook;
+export type HandbookEntry = (typeof HANDBOOK.entries)[number];
+
+/** Topik umum yang relevan untuk satu langkah, dari jenis aksi di data kontennya. */
+export const handbookTopics = (stepId: string): HandbookEntry[] =>
+  HANDBOOK.entries.filter((e) => e.action !== undefined && stepOf(stepId).actions.some((a) => a.kind === e.action));
+
+/**
+ * Halaman yang dibuka tombol B: task card yang sedang dibaca, part yang dipegang,
+ * atau langkah berikutnya untuk part yang sedang dikerjakan (P-lead kalau tinggal menyambung P-lead).
+ */
+export function handbookEntryFor(s: RakitState, focusPart: string, document: string | null): string {
+  const part = partDef(s.held ?? focusPart);
+  const stepId = document
+    ?? (!s.held && part.pLead && stage(s, part.assetId, requiresWire(part.stepId)) === "plead" ? part.pLead.stepId : part.stepId);
+  return (HANDBOOK.entries.find((e) => e.stepId === stepId) ?? HANDBOOK.entries[0]!).id;
+}

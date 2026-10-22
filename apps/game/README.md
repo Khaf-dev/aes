@@ -15,6 +15,7 @@ Tambahkan `?debug` di URL untuk kait uji otomatis (`window.__aes`).
 - Hanggar malam dengan lampu satuan fisik (lumen, lux, decay 2) dan headlamp mekanik di kamera.
 - Kamera orbit berbatas ruangan, tidak menembus benda padat. Benda yang menghalangi pandangan (firewall, engine mount, stand) jadi tembus pandang; F mendekatkan kamera ke benda yang ditunjuk.
 - Klik meja kerja membuka task card (tab ke semua task card).
+- Buku panduan (B): halaman per task card dengan WARNING/CAUTION/NOTE bersumber (FAA), prosedur dari data langkah, dan daftar rujukan.
 - Ambil magneto atau starter dari meja part, pasang ke pad lewat bayangan pemasangan (pad lain menolak), pasang ring & mur di stud.
 - Mode kunci torsi (T) dan close-up hybrid: kunci 3D dari asset pipeline + skala mikrometer di kaca pembesar.
 - Tang safety wire (W): klik mur pertama lalu pasangannya, pilih arah lilitan sendiri; klik mur berkawat untuk memotong.

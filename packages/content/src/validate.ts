@@ -1,11 +1,13 @@
 import type { z } from "zod";
 import {
   ContentPackSchema,
+  HandbookSchema,
   IgnitionSchema,
   NetworkSchema,
   TestScenarioSchema,
   type AssemblyStep,
   type ContentPack,
+  type HandbookData,
   type IgnitionData,
   type NetworkData,
   type Part,
@@ -22,6 +24,7 @@ export interface Aircraft {
   readonly network: NetworkData;
   readonly scenarios: readonly TestScenarioData[];
   readonly ignition: IgnitionData;
+  readonly handbook: HandbookData;
 }
 
 function issues(error: z.ZodError, prefix: string): string[] {
@@ -108,6 +111,7 @@ export interface AircraftInput {
   readonly network: unknown;
   readonly scenarios: readonly unknown[];
   readonly ignition: unknown;
+  readonly handbook: unknown;
 }
 
 /**
@@ -194,7 +198,27 @@ export function validateAircraft(input: AircraftInput): Result<Aircraft> {
   }
   for (const id of duplicates(ignition.data.magnetos.map((m) => m.id))) errors.push(`Magneto duplikat: ${id}`);
 
+  const handbook = HandbookSchema.safeParse(input.handbook);
+  if (!handbook.success) {
+    errors.push(...issues(handbook.error, "handbook."));
+    return { ok: false, errors };
+  }
+  const sourceIds = new Set(handbook.data.sources.map((s) => s.id));
+  for (const id of duplicates(handbook.data.sources.map((s) => s.id))) errors.push(`Sumber handbook duplikat: ${id}`);
+  for (const id of duplicates(handbook.data.entries.map((e) => e.id))) errors.push(`Entri handbook duplikat: ${id}`);
+  for (const id of duplicates(handbook.data.entries.flatMap((e) => (e.stepId ? [e.stepId] : [])))) {
+    errors.push(`Langkah ${id} punya lebih dari satu entri handbook`);
+  }
+  for (const entry of handbook.data.entries) {
+    if (entry.stepId !== undefined && !stepIds.has(entry.stepId)) {
+      errors.push(`Entri handbook ${entry.id} merujuk langkah yang tidak ada: ${entry.stepId}`);
+    }
+    for (const c of [...entry.about, ...entry.notes]) {
+      if (!sourceIds.has(c.source)) errors.push(`Entri handbook ${entry.id} merujuk sumber yang tidak ada: ${c.source}`);
+    }
+  }
+
   return errors.length === 0
-    ? { ok: true, value: { parts, steps, network: network.data, scenarios, ignition: ignition.data } }
+    ? { ok: true, value: { parts, steps, network: network.data, scenarios, ignition: ignition.data, handbook: handbook.data } }
     : { ok: false, errors };
 }

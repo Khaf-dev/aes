@@ -19,7 +19,9 @@ export function loadAircraftInput(): AircraftInput {
   if (networks.length !== 1) throw new Error(`Diharapkan 1 jaringan, ada ${networks.length}`);
   const ignition = readJsonDir("ignition");
   if (ignition.length !== 1) throw new Error(`Diharapkan 1 data pengapian, ada ${ignition.length}`);
-  return { packs: readJsonDir("packs"), network: networks[0], scenarios: readJsonDir("scenarios"), ignition: ignition[0] };
+  const handbook = readJsonDir("handbook");
+  if (handbook.length !== 1) throw new Error(`Diharapkan 1 handbook, ada ${handbook.length}`);
+  return { packs: readJsonDir("packs"), network: networks[0], scenarios: readJsonDir("scenarios"), ignition: ignition[0], handbook: handbook[0] };
 }
 
 /** Log perakitan sempurna untuk semua langkah, semua di-sign-off. */

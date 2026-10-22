@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { beginPull, clampSetting, openSession, release, tick, type PullState } from "../src/logic/clickWrench.ts";
-import { assemblyLog, checklist, hiddenDefects, STEPS } from "../src/logic/assemblyLog.ts";
+import { assemblyLog, checklist, handbookEntryFor, handbookTopics, hiddenDefects, STEPS } from "../src/logic/assemblyLog.ts";
 import { runGroundTest } from "../src/logic/groundTest.ts";
 import {
   cutWire, initialRakit, install, installNut, installWire, pickUp, putBack, removeNut, signOff, stage, toggleCheck, togglePLead, torqueNut,
@@ -138,8 +138,8 @@ describe("task card", () => {
     expect(checklist("74-10-01")).toEqual([
       "Inspeksi magneto kiri sebelum dipasang",
       "Pasang magneto kiri di pad",
-      "Kencangkan 2 mur pengikat · torsi: belum ada nilai bersumber, lihat handbook",
-      "Atur timing · belum ada nilai bersumber, lihat handbook",
+      "Kencangkan 2 mur pengikat · torsi: belum ada nilai bersumber",
+      "Atur timing · belum ada nilai bersumber",
       "Inspeksi akhir pekerjaan",
     ]);
     expect(checklist("74-10-03")).toEqual(["Sambungkan kabel p-lead kiri ke magneto kiri", "Inspeksi akhir pekerjaan"]);
@@ -199,5 +199,25 @@ describe("FOD", () => {
     const sheet = runGroundTest(initialRakit(), [{ tool: "Kunci torsi", stepId: "74-10-01" }]);
     expect(sheet.passed).toBe(false);
     expect(sheet.fod).toEqual([{ tool: "Kunci torsi", where: "74-10-01 (Pasang magneto kiri)" }]);
+  });
+});
+
+describe("buku panduan", () => {
+  const log = { setting: 60, feel: "klik" } as const;
+  it("membuka halaman sesuai konteks: dokumen, part di tangan, lalu langkah berikutnya", () => {
+    let s = initialRakit();
+    expect(handbookEntryFor(s, MAG, null)).toBe("hb.magneto.left");
+    expect(handbookEntryFor(s, MAG, "74-10-04")).toBe("hb.p-lead.right");
+    expect(handbookEntryFor(pickUp(s, "acc.starter.mk1").state, MAG, null)).toBe("hb.starter");
+    s = install(pickUp(s, MAG).state, MAG).state;
+    s = installNut(installNut(s, MAG, 0).state, MAG, 1).state;
+    s = torqueNut(torqueNut(s, MAG, 0, 60, log), MAG, 1, 60, log);
+    expect(handbookEntryFor(s, MAG, null)).toBe("hb.p-lead.left");
+  });
+
+  it("topik umum mengikuti aksi di langkah", () => {
+    const ids = handbookTopics("74-10-01").map((e) => e.id);
+    expect(ids).toContain("hb.torque");
+    expect(ids).not.toContain("hb.safety-wire");
   });
 });

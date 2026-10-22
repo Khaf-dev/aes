@@ -1,0 +1,127 @@
+{
+  "sources": [
+    {
+      "id": "faa-phak-ch7",
+      "title": "FAA, Pilot's Handbook of Aeronautical Knowledge, Bab 7: Aircraft Systems",
+      "url": "https://www.faa.gov/sites/faa.gov/files/09_phak_ch7.pdf"
+    },
+    {
+      "id": "faa-amtp-ch4",
+      "title": "FAA-H-8083-32B, AMT Handbook Powerplant, Bab 4: Engine Ignition & Electrical Systems",
+      "url": "https://www.faa.gov/sites/faa.gov/files/06_amtp_ch4.pdf"
+    },
+    {
+      "id": "faa-amtp-ch5",
+      "title": "FAA-H-8083-32B, AMT Handbook Powerplant, Bab 5: Engine Starting Systems",
+      "url": "https://www.faa.gov/sites/faa.gov/files/07_amtp_ch5.pdf"
+    },
+    {
+      "id": "faa-ac43-ch7",
+      "title": "FAA AC 43.13-1B, Bab 7: Aircraft Hardware, Control Cables, and Turnbuckles",
+      "url": "https://www.faa.gov/sites/faa.gov/files/2023-08/AC_43.13-1B_Ch7.pdf"
+    },
+    {
+      "id": "faa-safety-wire",
+      "title": "FAA, lembar keselamatan \"Safety Wire\"",
+      "url": "https://www.faa.gov/sites/faa.gov/files/2022-01/Safety%20Wire.pdf"
+    },
+    {
+      "id": "faa-saib-ne-08-26r3",
+      "title": "FAA SAIB NE-08-26R3, Magneto/Distributor (31 Maret 2011), salinan arsip EASA",
+      "url": "https://ad.easa.europa.eu/blob/NE0826R3.pdf/SIB_NE-08-26R3_1"
+    }
+  ],
+  "entries": [
+    {
+      "id": "hb.magneto.left",
+      "title": "Magneto kiri",
+      "stepId": "74-10-01",
+      "about": [
+        { "text": "Magneto membangkitkan tegangan tinggi untuk busi dari putaran mesin sendiri. Magneto tidak butuh listrik dari baterai maupun master switch.", "source": "faa-phak-ch7", "ref": "hlm. 7-16" },
+        { "text": "Mesin memakai dua magneto. Tiap magneto menyalakan satu dari dua busi di setiap silinder, jadi kalau satu magneto gagal, yang lain tidak terpengaruh. Dua busi juga membuat pembakaran lebih sempurna dan tenaga sedikit lebih besar.", "source": "faa-phak-ch7", "ref": "hlm. 7-15" }
+      ],
+      "notes": [
+        { "level": "WARNING", "text": "Magneto tetap bisa memercikkan api walau baterai mati. Kalau kabel ground (P-lead) antara magneto dan kunci kontak lepas atau putus, mesin bisa menyala sendiri saat baling-baling digerakkan dan masih ada sisa bahan bakar di silinder.", "source": "faa-phak-ch7", "ref": "hlm. 7-16" },
+        { "level": "CAUTION", "text": "Saat timing, kencangkan mur dudukan magneto hanya sedikit, supaya magneto masih bisa digeser di alur flange-nya. Setelah timing selesai, baru kencangkan mur dudukan.", "source": "faa-amtp-ch4", "ref": "hlm. 4-31" },
+        { "level": "CAUTION", "text": "Klem magneto yang kendor bisa menggerus flange magneto sampai rusak, lalu magneto lepas saat terbang dan mesin kehilangan tenaga. FAA menyarankan lock washer baru setiap klem dilepas, torsi mur klem sesuai instruksi pabrikan mesin, dan cek torsi klem tiap inspeksi tahunan atau 100 jam. Buletin ini untuk magneto ganda seri tertentu, tapi jadi pelajaran untuk semua dudukan magneto.", "source": "faa-saib-ne-08-26r3", "ref": "Recommendations" },
+        { "level": "NOTE", "text": "Timing magneto ke mesin: magneto diatur menyalakan silinder nomor 1. Lampu timing dipasang ke kedua magneto, lalu magneto digeser di alur flange sampai titik kontaknya tepat membuka.", "source": "faa-amtp-ch4", "ref": "hlm. 4-31" }
+      ]
+    },
+    {
+      "id": "hb.magneto.right",
+      "title": "Magneto kanan",
+      "stepId": "74-10-02",
+      "about": [
+        { "text": "Magneto kanan bekerja sama dengan magneto kiri: masing-masing menyalakan satu dari dua busi di setiap silinder. Kalau satu magneto gagal, yang lain tidak terpengaruh.", "source": "faa-phak-ch7", "ref": "hlm. 7-15" }
+      ],
+      "notes": [
+        { "level": "WARNING", "text": "Magneto tetap bisa memercikkan api walau baterai mati. Kalau kabel ground (P-lead) lepas atau putus, mesin bisa menyala sendiri saat baling-baling digerakkan.", "source": "faa-phak-ch7", "ref": "hlm. 7-16" },
+        { "level": "CAUTION", "text": "Saat timing, kencangkan mur dudukan hanya sedikit supaya magneto masih bisa digeser. Setelah timing selesai, baru kencangkan mur dudukan.", "source": "faa-amtp-ch4", "ref": "hlm. 4-31" },
+        { "level": "CAUTION", "text": "Klem magneto yang kendor bisa menggerus flange sampai magneto lepas saat terbang. Pasang lock washer baru setiap klem dilepas, dan cek torsi klem tiap inspeksi tahunan atau 100 jam.", "source": "faa-saib-ne-08-26r3", "ref": "Recommendations" }
+      ]
+    },
+    {
+      "id": "hb.p-lead.left",
+      "title": "Kabel P-lead magneto kiri",
+      "stepId": "74-10-03",
+      "about": [
+        { "text": "P-lead adalah kabel ground magneto ke kunci kontak. Di posisi OFF, kunci kontak menyambungkan sirkuit primer magneto ke ground, sehingga magneto tidak menghasilkan percikan.", "source": "faa-amtp-ch4", "ref": "hlm. 4-10 dan 4-32" }
+      ],
+      "notes": [
+        { "level": "WARNING", "text": "Kalau mesin tetap menyala saat kunci di posisi OFF, P-lead terbuka (tidak ter-ground). Memutar baling-baling mesin seperti ini bisa mencederai atau menewaskan orang, karena mesin bisa menyala saat ada orang di jalur baling-baling.", "source": "faa-amtp-ch4", "ref": "hlm. 4-32" },
+        { "level": "NOTE", "text": "Sambungan P-lead dibuktikan dengan cek kunci OFF saat run-up: di putaran rendah kunci diputar ke OFF sebentar, mesin harus berhenti menyala, lalu kunci segera dikembalikan ke BOTH.", "source": "faa-amtp-ch4", "ref": "hlm. 4-32" }
+      ]
+    },
+    {
+      "id": "hb.p-lead.right",
+      "title": "Kabel P-lead magneto kanan",
+      "stepId": "74-10-04",
+      "about": [
+        { "text": "P-lead adalah kabel ground magneto ke kunci kontak. Di posisi OFF, sirkuit primer magneto disambungkan ke ground sehingga magneto berhenti memercikkan api.", "source": "faa-amtp-ch4", "ref": "hlm. 4-10 dan 4-32" }
+      ],
+      "notes": [
+        { "level": "WARNING", "text": "P-lead yang terbuka membuat magneto tetap aktif walau kunci OFF. Memutar baling-baling mesin seperti ini bisa mencederai atau menewaskan orang.", "source": "faa-amtp-ch4", "ref": "hlm. 4-32" },
+        { "level": "NOTE", "text": "Saat mag check, tiap magneto dijalankan sendiri-sendiri dan putaran mesin harus turun sedikit. Putaran yang sama sekali tidak turun bukan tanda normal: pesawat tidak boleh diterbangkan.", "source": "faa-phak-ch7", "ref": "hlm. 7-15 sampai 7-16" }
+      ]
+    },
+    {
+      "id": "hb.starter",
+      "title": "Motor starter",
+      "stepId": "80-10-01",
+      "about": [
+        { "text": "Starter listrik memutar mesin saat start. Ada yang menggerakkan ring gear di hub baling-baling, ada juga yang dipasang lewat adapter di mesin dengan kopling satu arah (overrunning clutch).", "source": "faa-amtp-ch5", "ref": "hlm. 5-6" }
+      ],
+      "notes": [
+        { "level": "CAUTION", "text": "Starter punya batas kerja. Setelah dialiri listrik satu menit, dinginkan minimal satu menit. Setelah periode kedua, dinginkan lima menit. Starter pesawat kecil juga punya batas waktu pendinginan yang harus dipatuhi.", "source": "faa-amtp-ch5", "ref": "hlm. 5-6" },
+        { "level": "NOTE", "text": "Inspeksi: cek kekencangan dudukan housing starter, dan cek sambungan listriknya dari kendor dan korosi.", "source": "faa-amtp-ch5", "ref": "hlm. 5-7" },
+        { "level": "NOTE", "text": "Kalau starter tidak bekerja, telusuri dulu sirkuitnya: master switch dan sirkuitnya, lalu switch starter dan kabelnya.", "source": "faa-amtp-ch5", "ref": "hlm. 5-8, Gambar 5-13" }
+      ]
+    },
+    {
+      "id": "hb.torque",
+      "title": "Mengencangkan dengan kunci torsi",
+      "action": "torque",
+      "about": [
+        { "text": "Nilai torsi diambil dari data pabrikan. Tabel torsi umum di AC 43.13-1B hanya dipakai kalau pabrikan tidak memberikan nilai torsi spesifik.", "source": "faa-ac43-ch7", "ref": "par. 7-40" }
+      ],
+      "notes": [
+        { "level": "CAUTION", "text": "Kalibrasi kunci torsi minimal setahun sekali, dan segera setelah kunci jatuh atau dipakai tidak semestinya.", "source": "faa-ac43-ch7", "ref": "par. 7-40" },
+        { "level": "NOTE", "text": "Pastikan ulir baut dan mur bersih dan kering, kecuali pabrikan menentukan lain. Kalau mur punya hambatan putar (friction drag), tambahkan nilainya ke torsi yang diminta.", "source": "faa-ac43-ch7", "ref": "par. 7-40" },
+        { "level": "NOTE", "text": "Semua baut dan mur harus dikunci atau diamankan, kecuali mur self-locking.", "source": "faa-ac43-ch7", "ref": "par. 7-38" }
+      ]
+    },
+    {
+      "id": "hb.safety-wire",
+      "title": "Memasang safety wire",
+      "action": "safetyWire",
+      "about": [
+        { "text": "Kencangkan pengencang ke torsi yang benar dulu, baru pasang safety wire.", "source": "faa-safety-wire", "ref": "isi lembar" }
+      ],
+      "notes": [
+        { "level": "WARNING", "text": "Kawat harus selalu cenderung mengencangkan baut atau mur. Kawat yang dipasang terbalik justru menarik pengencang ke arah kendor.", "source": "faa-safety-wire", "ref": "isi lembar" },
+        { "level": "CAUTION", "text": "Safety wire dan cotter pin tidak boleh dipakai ulang. Setiap pemasangan memakai kawat baru.", "source": "faa-ac43-ch7", "ref": "par. 7-38" },
+        { "level": "NOTE", "text": "Pemasangan yang baik punya sekitar 6–8 pilinan per inci, dan kawat terpasang tegang.", "source": "faa-safety-wire", "ref": "isi lembar" }
+      ]
+    }
+  ]
+}

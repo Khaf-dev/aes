@@ -54,6 +54,7 @@ export function DocumentView() {
           {signed
             ? <span className="doc-stamp">SIGNED · RK</span>
             : <button type="button" className="doc-sign" onClick={() => g.signOff(stepId)}>Tanda tangani task card · RK</button>}
+          <button type="button" className="doc-close" onClick={() => g.openHandbook()}>B · buku panduan</button>
           <button type="button" className="doc-close" onClick={() => g.closeDocument()}>Esc · kembali</button>
         </footer>
       </article>
