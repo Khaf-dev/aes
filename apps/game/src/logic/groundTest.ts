@@ -3,7 +3,7 @@
  * Langkah yang belum bisa dirakit di hanggar (ATA 24: baterai & kabel) dianggap dikerjakan dengan benar
  * oleh shift sebelumnya, jadi hasil tes murni dari pekerjaan pemain.
  */
-import { runTest, runUp, type Defect, type DefectKind, type MagResult, type PerformedAction, type StepRecord, type StepSpec, type TestReport } from "@aes/sim-core";
+import { fuelCheck, runTest, runUp, type Defect, type DefectKind, type MagResult, type PerformedAction, type StepRecord, type StepSpec, type TestReport } from "@aes/sim-core";
 import { PLAYABLE_STEP_IDS } from "../data/parts.ts";
 import { AIRCRAFT, assemblyLog } from "./assemblyLog.ts";
 import type { RakitState } from "./rakit.ts";
@@ -11,7 +11,8 @@ import type { RakitState } from "./rakit.ts";
 /** Sistem yang belum dimodelkan sim-core: dilaporkan jujur sebagai tidak diuji. */
 const UNTESTED = [
   "Timing magneto belum diuji (alat timing belum ada); setelan timing tidak dinilai.",
-  "Kekencangan dudukan magneto dan starter tidak terlihat di run-up singkat. Klem magneto yang kendor bisa membuat flange aus sampai magneto lepas (FAA SAIB NE-08-26R3).",
+  "Akibat jangka panjang klem kendor belum dimodelkan: flange magneto bisa aus sampai magneto lepas (FAA SAIB NE-08-26R3). Yang dicek baru torsi mur klem.",
+  "Cek torsi inspektur hanya menemukan torsi kurang. Torsi berlebih tidak terlihat dari cek ini, dan akibatnya (stud meregang) belum dimodelkan.",
 ];
 const MAG_RESULT_TEXT: Record<MagResult, string> = {
   normal: "RPM turun sedikit, mesin tetap halus",
@@ -61,6 +62,11 @@ export interface TestSheet {
     readonly offCheck: string | null;
     readonly findings: readonly { readonly title: string; readonly step: Clue | null }[];
   };
+  /**
+   * Cek torsi mur klem oleh inspektur setelah tes (FAA SAIB NE-08-26R3: cek torsi klem dengan kunci torsi).
+   * Kunci disetel ke batas bawah; mur yang ikut berputar sebelum klik = torsi kurang. Angka aktual tidak terlihat.
+   */
+  readonly torqueCheck: readonly { readonly title: string; readonly step: Clue | null }[];
   readonly consumers: readonly { readonly label: string; readonly ok: boolean; readonly voltage: number }[];
   readonly findings: readonly {
     readonly consumer: string;
@@ -97,8 +103,22 @@ export function runGroundTest(s: RakitState, toolsOut: ToolsOut = []): TestSheet
 
   const starterOk = report.consumers.some((c) => c.consumerId === "load.starter" && c.status === "ok");
   const magnetos = AIRCRAFT.ignition.magnetos;
-  const ign = runUp(magnetos, report.defects, starterOk);
+  const fuel = fuelCheck(AIRCRAFT.fuel, report.defects);
+  const ign = runUp(magnetos, report.defects, starterOk, fuel.delivered);
   const magLabel = (id: string) => magnetos.find((m) => m.id === id)?.label ?? id;
+  const torqueMin = (stepId: string) => {
+    const action = AIRCRAFT.steps.find((x) => x.id === stepId)?.actions.find((a) => a.kind === "torque");
+    return action?.kind === "torque" ? action.range?.[0] : undefined;
+  };
+  const torqueCheck = report.defects
+    .filter((d) => d.kind === "underTorque" && playable.has(d.stepId) && torqueMin(d.stepId) !== undefined)
+    .map((d) => {
+      const c = clue(d)!;
+      return {
+        title: `Mur #${d.fastener ?? 1} ${c.title.toLowerCase().replace(/^pasang /, "")} ikut berputar sebelum kunci torsi klik di ${torqueMin(d.stepId)} in-lb`,
+        step: { ...c, defect: `torsi kurang pada mur #${d.fastener ?? 1}` },
+      };
+    });
   // Pengisian alternator hanya bisa diuji setelah mesin hidup
   const engineRun = ign.started ? scenarioOf("engine-run") : null;
   const charging = engineRun ? runTest({ design: AIRCRAFT.network, steps: AIRCRAFT.steps, log, scenario: engineRun }) : null;
@@ -121,7 +141,8 @@ export function runGroundTest(s: RakitState, toolsOut: ToolsOut = []): TestSheet
 
   return {
     scenario: `${scenario.label} + mag check + pengisian`,
-    passed: report.passed && ign.started && ign.findings.length === 0 && toolsOut.length === 0 && (charging?.passed ?? false),
+    passed: report.passed && ign.started && ign.findings.length === 0 && toolsOut.length === 0 && (charging?.passed ?? false)
+      && torqueCheck.length === 0,
     // Alat tertinggal: tes tetap jalan, tapi pemeriksaan pasca-tes menemukannya di area mesin
     fod: report.defects.filter((d) => d.kind === "fod").map((d) => {
       const step = AIRCRAFT.steps.find((x) => x.id === d.stepId);
@@ -137,13 +158,18 @@ export function runGroundTest(s: RakitState, toolsOut: ToolsOut = []): TestSheet
       })),
       offCheck: ign.offCheck === null ? null
         : ign.offCheck === "stops" ? "Kunci OFF saat idle: mesin mati (normal)" : "Kunci OFF saat idle: mesin TETAP HIDUP",
-      findings: ign.findings.map((f) => ({
-        title: f.problem === "notFiring"
-          ? `${magLabel(f.magnetoId)} tidak menyala`
-          : `${magLabel(f.magnetoId)} tidak bisa dimatikan: P-lead tidak meng-ground magneto ("magneto panas")`,
-        step: clue(f.cause),
-      })),
+      findings: [
+        // Diputar starter tapi tidak hidup: bahan bakar tidak sampai ke karburator
+        ...(starterOk && !fuel.delivered ? [{ title: "Mesin berputar tapi tidak hidup: bahan bakar tidak sampai ke silinder", step: clue(fuel.cause) }] : []),
+        ...ign.findings.map((f) => ({
+          title: f.problem === "notFiring"
+            ? `${magLabel(f.magnetoId)} tidak menyala`
+            : `${magLabel(f.magnetoId)} tidak bisa dimatikan: P-lead tidak meng-ground magneto ("magneto panas")`,
+          step: clue(f.cause),
+        })),
+      ],
     },
+    torqueCheck,
     consumers: [
       ...consumersOf(report, scenario.mustOperate),
       ...(charging && engineRun ? consumersOf(charging, engineRun.mustOperate, " · mesin hidup") : []),

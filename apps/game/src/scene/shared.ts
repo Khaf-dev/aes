@@ -1,5 +1,6 @@
 /** Material PBR, referensi objek bersama, tween, dan kotak tabrakan kamera untuk scene hanggar. */
 import * as THREE from "three";
+import { PAD_FACE_X, type PadDef } from "../data/parts.ts";
 
 export const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 export const UP = V(0, 1, 0);
@@ -7,7 +8,36 @@ export const UP = V(0, 1, 0);
 /** Satuan meter. Kamera tidak boleh keluar dari ruangan ini. */
 export const ROOM = { minX: -5.2, maxX: 5.6, minZ: -4.2, maxZ: 5.6, height: 7 } as const;
 export const ENGINE_POS = V(0, 1.02, 0);
-export const PART_TABLE = { x: 0.33, z: 0.88, top: 0.78, w: 0.62, d: 0.34 } as const;
+
+/**
+ * Bingkai lokal pad di koordinat grup mesin: titik asal = pusat muka pad, sumbu x = normal keluar dari pad,
+ * y/z = bidang muka pad. Stud, mur, safety wire, dan terminal ditulis di bingkai ini.
+ */
+export function padFrame(pad: PadDef) {
+  const normal = V(...(pad.normal ?? [1, 0, 0]));
+  return { origin: V(pad.x ?? PAD_FACE_X, pad.y, pad.z), normal, q: new THREE.Quaternion().setFromUnitVectors(V(1, 0, 0), normal) };
+}
+/** Titik di bingkai pad → koordinat grup mesin. */
+export const padPoint = (pad: PadDef, x: number, y: number, z: number) => {
+  const f = padFrame(pad);
+  return V(x, y, z).applyQuaternion(f.q).add(f.origin);
+};
+/** Meja part: cukup lebar untuk semua part, dan cukup jauh dari mesin (±0,8 m) untuk lalu-lalang engineer. */
+export const PART_TABLE = { x: 0.35, z: 1.5, top: 0.78, w: 1.15, d: 0.46 } as const;
+/** Muka belakang pelat firewall uji (x dunia). Kabel dan selang dari mesin menembus pelat lewat grommet. */
+export const FIREWALL_BACK_X = 0.94;
+/**
+ * Ujung kabel dan selang di belakang firewall uji (koordinat dunia): kunci kontak magneto di panel uji,
+ * kotak bus utama + relay, dan strainer (gascolator) dari tangki stand lewat katup selector.
+ */
+export const STAND = {
+  magSwitch: V(0.99, 1.3, 0.24),
+  busBox: V(1.0, 0.98, -0.26),
+  battery: V(1.3, 0.2, -0.28),
+  fuelTank: V(1.12, 1.62, 0),
+  fuelSelector: V(0.98, 0.9, 0.33),
+  gascolator: V(0.985, 0.74, 0.33),
+} as const;
 export const LAMP_POS = V(-1.15, 2.25, 1.35);
 export const LAMP_AIM = V(0.15, 1.0, -0.15);
 /** Dinding belakang hanggar (meja kerja, shadow board, papan tulis menempel di sini). */
@@ -34,6 +64,8 @@ export const M = {
   standPaint: std(0xc9a227, 0.25, 0.55),
   plate: std(0x5d636b, 0.6, 0.45),
   rubber: std(0x141414, 0.0, 0.85),
+  /** Selang bahan bakar: karet berlapis anyaman, warna biru tua supaya beda dari kabel listrik. */
+  fuelHose: std(0x1f3550, 0.0, 0.7),
   propBlade: std(0x2c2f33, 0.6, 0.4),
   oil: std(0x120d06, 0.0, 0.04),
   cloth: std(0xd8d0bf, 0.0, 0.95),

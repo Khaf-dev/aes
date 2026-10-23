@@ -13,17 +13,17 @@
     "driveShaft",
     "outputTerminal"
   ],
-  "triangles": 6280,
+  "triangles": 6328,
   "boundingBox": {
     "min": [
       -0.150145,
       -0.055145,
-      -0.062
+      -0.087008
     ],
     "max": [
       0.018029,
       0.069003,
-      0.062
+      0.087008
     ]
   },
   "attachPoints": {
@@ -90,9 +90,9 @@
       "unit": "mm"
     },
     "earSpacing": {
-      "min": 100.0,
-      "max": 100.0,
-      "nominal": 100.0,
+      "min": 150.0,
+      "max": 150.0,
+      "nominal": 150.0,
       "unit": "mm"
     },
     "earRadius": {
@@ -118,7 +118,7 @@
     "url": "",
     "kind": "placeholder",
     "verified": false,
-    "note": "Mesh sementara karena kuota TRELLIS.2 habis. Semua ukuran hanya visual; ganti dengan mesh Tier 2 dari assets-src/tier2/alternator dan dimensi bersumber."
+    "note": "Mesh sementara karena kuota TRELLIS.2 habis. Telinga flange sengaja di luar badan (±75 mm, badan Ø110) supaya mur terlihat dan mudah dijangkau. Semua ukuran hanya visual; ganti dengan mesh Tier 2 dari assets-src/tier2/alternator dan dimensi bersumber."
   },
   "generator": "aes-asset-pipeline 0.1.0"
 }

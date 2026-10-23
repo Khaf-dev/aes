@@ -233,7 +233,51 @@ def alternator(spec: PartSpec) -> Generated:
     )
 
 
-GENERATORS = {"bolt": bolt, "nut": nut, "washer": washer, "torque_wrench": torque_wrench, "alternator": alternator}
+def carburetor(spec: PartSpec) -> Generated:
+    """Karburator updraft, bentuk dasar sementara (placeholder). Konvensi Tier 2 seperti alternator.
+
+    Flange persegi dengan empat stud di sudut; leher dan badan lebih sempit dari pola stud supaya mur terlihat.
+    Saluran masuk bahan bakar (fitting) di sisi +Z CAD = +Y runtime, ke arah belakang mesin saat terpasang.
+    """
+    flange, flange_t = spec.mm("flangeSize"), spec.mm("flangeThickness")
+    stud = spec.mm("studSpacing") / 2
+    neck, neck_l = spec.mm("neckSize"), spec.mm("neckLength")
+    body, body_l = spec.mm("bodySize"), spec.mm("bodyLength")
+    air, air_l = spec.mm("airInletSize"), spec.mm("airInletLength")
+    inlet_x = -spec.mm("fuelInletAt")
+    x_axis = lambda: cq.Workplane("YZ")  # noqa: E731 - normal +X
+    corners = [(sy * stud, sz * stud) for sy in (-1, 1) for sz in (-1, 1)]
+
+    plate = x_axis().rect(flange, flange).extrude(-flange_t).edges("|X").fillet(8)
+    plate = plate.cut(x_axis().pushPoints(corners).circle(4.5).extrude(-flange_t))
+    neck_s = x_axis().workplane(offset=-flange_t).rect(neck, neck).extrude(-neck_l)
+    x_body = -flange_t - neck_l
+    body_s = x_axis().workplane(offset=x_body).rect(body, body).extrude(-body_l).edges("|X").fillet(6)
+    bowl_line = x_axis().workplane(offset=x_body - body_l * 0.45).rect(body + 2, body + 2).extrude(-2)  # sambungan ruang pelampung
+    x_air = x_body - body_l
+    air_s = x_axis().workplane(offset=x_air).rect(air, air).extrude(-air_l).faces("<X").chamfer(3)
+    fitting = cq.Workplane("XY").workplane(offset=body / 2 - 1).center(inlet_x, 0).polygon(6, 16).extrude(16)
+    lever = cq.Workplane("XZ").workplane(offset=-body / 2).center(x_body - 10, 0).rect(30, 6).extrude(-4)
+
+    return Generated(
+        meshes=[
+            Mesh("flange", plate, SATIN),
+            Mesh("body", neck_s.union(body_s).union(air_s), (0.58, 0.56, 0.5)),
+            Mesh("floatBowlSeam", bowl_line, (0.35, 0.34, 0.3)),
+            Mesh("fuelInlet", fitting, (0.69, 0.55, 0.34)),
+            Mesh("throttleLever", lever, STEEL),
+        ],
+        attach={
+            "mountFace": {"position": [0, 0, 0], "normal": [1, 0, 0]},
+            "fuelInlet": {"position": [inlet_x, 0, body / 2 + 15], "normal": [0, 0, 1]},
+        },
+    )
+
+
+GENERATORS = {
+    "bolt": bolt, "nut": nut, "washer": washer, "torque_wrench": torque_wrench,
+    "alternator": alternator, "carburetor": carburetor,
+}
 
 
 def generate(spec: PartSpec) -> Generated:

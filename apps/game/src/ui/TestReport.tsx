@@ -44,7 +44,7 @@ export function TestReport() {
         </section>
         {sheet.runUp.findings.map((f, i) => (
           <section key={`ign${i}`} className="report-finding">
-            <h3>Temuan pengapian: {f.title}</h3>
+            <h3>Temuan start mesin: {f.title}</h3>
             {f.step ? (
               <p className="report-clue">
                 <b>Clue:</b> cek task card {f.step.id} ({f.step.title}): {f.step.defect}.
@@ -53,6 +53,22 @@ export function TestReport() {
             ) : null}
           </section>
         ))}
+        <section>
+          <h3>Cek torsi mur klem (inspektur)</h3>
+          {sheet.torqueCheck.length === 0
+            ? <p>Kunci torsi disetel ke batas bawah tiap task card; tidak ada mur yang ikut berputar sebelum klik.</p>
+            : sheet.torqueCheck.map((t, i) => (
+              <div key={i} className="report-finding">
+                <p><b>{t.title}</b></p>
+                {t.step && (
+                  <p className="report-clue">
+                    <b>Clue:</b> cek task card {t.step.id} ({t.step.title}): {t.step.defect}.
+                    {t.step.signedOff && " Task card ini sudah ditandatangani."}
+                  </p>
+                )}
+              </div>
+            ))}
+        </section>
         {sheet.findings.map((f, i) => (
           <section key={i} className="report-finding">
             <h3>Temuan {i + 1}: {f.consumer} {f.symptom}</h3>

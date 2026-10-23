@@ -23,7 +23,7 @@ describe("detectDefects", () => {
       signedOff: true,
     });
     expect(detectDefects(steps, log)).toEqual([
-      { stepId: "24-30-02", kind: "underTorque", detail: "Torsi tidak diterapkan", signedOff: true },
+      { stepId: "24-30-02", kind: "underTorque", detail: "Torsi tidak diterapkan", signedOff: true, fastener: 1 },
     ]);
   });
 

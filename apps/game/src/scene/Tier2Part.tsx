@@ -7,9 +7,9 @@ import { useGLTF } from "@react-three/drei";
 import { useLoader, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { PAD_FACE_X, type PartDef } from "../data/parts.ts";
+import type { PartDef } from "../data/parts.ts";
 import { useGame } from "../state/store.ts";
-import { animate, PART_TABLE, rig, solids, UP, V } from "./shared.ts";
+import { animate, padFrame, PART_TABLE, rig, solids, UP, V } from "./shared.ts";
 
 interface PartMeta {
   readonly name: string;
@@ -17,7 +17,7 @@ interface PartMeta {
   readonly attachPoints: { readonly mountFace: { readonly normal: readonly [number, number, number] } };
 }
 
-const INTO_ENGINE = V(-1, 0, 0); // normal pad +x, jadi poros part masuk ke arah -x
+const INTO_ENGINE = V(-1, 0, 0); // bingkai pad: normal +x, jadi poros part masuk ke arah -x
 const HELD_POSE = { p: V(0.17, -0.12, -0.55), q: new THREE.Quaternion().setFromEuler(new THREE.Euler(0.25, -0.6, 0)) };
 
 /** Rotasi `from` → `to`; untuk arah berlawanan putar di sumbu vertikal supaya part tidak terbalik. */
@@ -50,15 +50,17 @@ export function Tier2Part({ def }: { def: PartDef }) {
       g.applyMatrix4(o.matrixWorld);
       ghost.add(g);
     });
-    const q = alignQuat(V(...meta.attachPoints.mountFace.normal).normalize(), INTO_ENGINE);
-    ghost.position.set(PAD_FACE_X, def.pad.y, def.pad.z);
+    // Di bingkai pad poros part masuk ke -x; bingkai pad lalu diputar ke arah normal pad di mesin
+    const frame = padFrame(def.pad);
+    const q = frame.q.clone().multiply(alignQuat(V(...meta.attachPoints.mountFace.normal).normalize(), INTO_ENGINE));
+    ghost.position.copy(frame.origin);
     ghost.quaternion.copy(q);
     ghost.visible = false;
     ghost.userData.material = ghostMat;
     return {
       root, ghost,
-      seated: { p: V(PAD_FACE_X, def.pad.y, def.pad.z), q },
-      approach: { p: V(PAD_FACE_X + 0.07, def.pad.y, def.pad.z), q },
+      seated: { p: frame.origin.clone(), q },
+      approach: { p: frame.origin.clone().addScaledVector(frame.normal, 0.07), q },
       // Bagian bawah model menempel di alas kain meja part
       rest: { p: V(def.rest[0], PART_TABLE.top + 0.004 - meta.boundingBox.min[1]!, def.rest[1]), q: new THREE.Quaternion().setFromAxisAngle(UP, def.yaw) },
     };

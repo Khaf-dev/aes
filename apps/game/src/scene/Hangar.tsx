@@ -2,7 +2,7 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import { useGame } from "../state/store.ts";
-import { canvasTexture, fadeable, LAMP_AIM, LAMP_POS, M, PART_TABLE, rand, ROOM, solid, UP, V } from "./shared.ts";
+import { canvasTexture, fadeable, LAMP_AIM, LAMP_POS, M, NO_RAYCAST, PART_TABLE, rand, ROOM, solid, STAND, UP, V } from "./shared.ts";
 
 export function Rod({ a, b, r, material }: { a: THREE.Vector3; b: THREE.Vector3; r: number; material: THREE.Material }) {
   const { pos, quat, len } = useMemo(() => {
@@ -151,6 +151,58 @@ function Stand() {
   );
 }
 
+const decorPick = (code: string, name: string) => ({ pick: { kind: "decor", code, name } });
+
+/**
+ * Sistem stand uji di belakang firewall: ujung semua kabel dan selang dari mesin.
+ * Kunci kontak magneto (ujung P-lead), kotak bus utama + relay (ujung kabel output alternator, ke baterai),
+ * dan tangki bahan bakar gravitasi → katup selector → strainer/gascolator (ujung selang karburator).
+ */
+function StandSystems() {
+  const { magSwitch, busBox, battery, fuelTank, fuelSelector, gascolator } = STAND;
+  const tubes = useMemo(() => ({
+    battery: new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+      battery.clone().add(V(-0.08, 0.1, 0)), V(battery.x - 0.2, 0.5, battery.z), busBox.clone().add(V(0.04, -0.07, 0)),
+    ]), 32, 0.007, 8),
+    fuel: new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+      fuelTank.clone().add(V(0, -0.12, 0.12)), V(fuelTank.x - 0.05, 1.2, 0.28), fuelSelector.clone().add(V(0, 0.03, 0)),
+    ]), 32, 0.006, 8),
+    strainer: new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+      fuelSelector.clone().add(V(0, -0.03, 0)), V(fuelSelector.x + 0.01, (fuelSelector.y + gascolator.y) / 2, fuelSelector.z), gascolator.clone().add(V(0, 0.03, 0)),
+    ]), 16, 0.006, 8),
+  }), [battery, busBox, fuelTank, fuelSelector, gascolator]);
+  return (
+    <group ref={(o) => { solid(o); fadeable(o); }}>
+      <mesh position={magSwitch} material={M.darkSteel} castShadow userData={decorPick("ATA 74", "Kunci kontak magneto (panel stand uji) · ujung P-lead")}>
+        <boxGeometry args={[0.06, 0.1, 0.14]} />
+      </mesh>
+      <mesh position={magSwitch.clone().add(V(0.035, 0, 0))} rotation-z={Math.PI / 2} material={M.steel} raycast={NO_RAYCAST}>
+        <cylinderGeometry args={[0.018, 0.018, 0.012, 16]} />
+      </mesh>
+      <mesh position={busBox} material={M.darkSteel} castShadow userData={decorPick("ATA 24", "Kotak bus utama & relay (stand uji) · ujung kabel output alternator")}>
+        <boxGeometry args={[0.08, 0.14, 0.16]} />
+      </mesh>
+      <mesh position={battery} material={M.rubber} castShadow userData={decorPick("ATA 24", "Baterai (stand uji)")}>
+        <boxGeometry args={[0.17, 0.2, 0.25]} />
+      </mesh>
+      <mesh geometry={tubes.battery} material={M.rubber} castShadow raycast={NO_RAYCAST} />
+      {/* Tangki gravitasi di atas karburator, di dua tiang dari rangka stand */}
+      <mesh position={fuelTank} rotation-x={Math.PI / 2} material={M.redPaint} castShadow userData={decorPick("ATA 28", "Tangki bahan bakar (stand uji, aliran gravitasi)")}>
+        <cylinderGeometry args={[0.12, 0.12, 0.5, 24]} />
+      </mesh>
+      {[-0.2, 0.2].map((z) => <Rod key={z} a={V(fuelTank.x, 0.08, z * 2.2)} b={V(fuelTank.x, fuelTank.y - 0.1, z)} r={0.015} material={M.standPaint} />)}
+      <mesh geometry={tubes.fuel} material={M.fuelHose} castShadow raycast={NO_RAYCAST} />
+      <mesh position={fuelSelector} material={M.steel} castShadow userData={decorPick("ATA 28", "Katup selector bahan bakar")}>
+        <boxGeometry args={[0.05, 0.06, 0.05]} />
+      </mesh>
+      <mesh geometry={tubes.strainer} material={M.fuelHose} castShadow raycast={NO_RAYCAST} />
+      <mesh position={gascolator} material={M.castAlu} castShadow userData={decorPick("ATA 28", "Strainer bahan bakar (gascolator) · ujung selang ke karburator")}>
+        <cylinderGeometry args={[0.022, 0.018, 0.06, 16]} />
+      </mesh>
+    </group>
+  );
+}
+
 /** Meja part: part siap pasang di atas kain lap bersih (praktik hanggar), di dalam sorotan lampu kerja. */
 function PartTable() {
   const { x, z, top, w, d } = PART_TABLE;
@@ -207,6 +259,7 @@ export function Hangar() {
       <Floor />
       <Walls />
       <Stand />
+      <StandSystems />
       <PartTable />
       <LampTripod />
     </>

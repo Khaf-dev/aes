@@ -57,8 +57,8 @@ export function detectDefects(steps: readonly StepSpec[], log: AssemblyLog): Def
     }
 
     const { record, lastIndex } = entry;
-    const add = (kind: DefectKind, detail: string) =>
-      defects.push({ stepId: step.id, kind, detail, signedOff: record.signedOff });
+    const add = (kind: DefectKind, detail: string, fastener?: number) =>
+      defects.push({ stepId: step.id, kind, detail, signedOff: record.signedOff, ...(fastener ? { fastener } : {}) });
 
     const notReady = step.requires.filter((req) => {
       const prerequisite = recorded.get(req);
@@ -94,11 +94,11 @@ export function detectDefects(steps: readonly StepSpec[], log: AssemblyLog): Def
           for (let fastener = 1; fastener <= count; fastener++) {
             const label = count > 1 ? `Mur #${fastener}: ` : "";
             const done = torqued.findLast((p) => (p.fastener ?? 1) === fastener);
-            if (done === undefined) add("underTorque", `${label}Torsi tidak diterapkan`);
+            if (done === undefined) add("underTorque", `${label}Torsi tidak diterapkan`, fastener);
             else if (spec.range !== null && done.value < spec.range[0]) {
-              add("underTorque", `${label}Torsi ${done.value} ${spec.unit} di bawah ${formatRange(spec.range, spec.unit)}`);
+              add("underTorque", `${label}Torsi ${done.value} ${spec.unit} di bawah ${formatRange(spec.range, spec.unit)}`, fastener);
             } else if (spec.range !== null && done.value > spec.range[1]) {
-              add("overTorque", `${label}Torsi ${done.value} ${spec.unit} di atas ${formatRange(spec.range, spec.unit)}`);
+              add("overTorque", `${label}Torsi ${done.value} ${spec.unit} di atas ${formatRange(spec.range, spec.unit)}`, fastener);
             }
           }
           break;

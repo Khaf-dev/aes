@@ -1,0 +1,125 @@
+{
+  "id": "acc.carburetor.mk1",
+  "standard": "Placeholder visual, bukan data teknis",
+  "name": "Karburator updraft (placeholder AES)",
+  "kind": "carburetor",
+  "tier": 2,
+  "model": "acc.carburetor.mk1.glb",
+  "units": "m",
+  "upAxis": "Y",
+  "meshes": [
+    "flange",
+    "body",
+    "floatBowlSeam",
+    "fuelInlet",
+    "throttleLever"
+  ],
+  "triangles": 2140,
+  "boundingBox": {
+    "min": [
+      -0.135,
+      -0.055006,
+      -0.055006
+    ],
+    "max": [
+      6e-06,
+      0.055006,
+      0.055006
+    ]
+  },
+  "attachPoints": {
+    "mountFace": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "normal": [
+        1.0,
+        0.0,
+        0.0
+      ]
+    },
+    "fuelInlet": {
+      "position": [
+        -0.055,
+        0.05,
+        0.0
+      ],
+      "normal": [
+        0.0,
+        1.0,
+        0.0
+      ]
+    }
+  },
+  "dimensions": {
+    "flangeSize": {
+      "min": 110.0,
+      "max": 110.0,
+      "nominal": 110.0,
+      "unit": "mm"
+    },
+    "flangeThickness": {
+      "min": 10.0,
+      "max": 10.0,
+      "nominal": 10.0,
+      "unit": "mm"
+    },
+    "studSpacing": {
+      "min": 84.0,
+      "max": 84.0,
+      "nominal": 84.0,
+      "unit": "mm"
+    },
+    "neckSize": {
+      "min": 56.0,
+      "max": 56.0,
+      "nominal": 56.0,
+      "unit": "mm"
+    },
+    "neckLength": {
+      "min": 30.0,
+      "max": 30.0,
+      "nominal": 30.0,
+      "unit": "mm"
+    },
+    "bodySize": {
+      "min": 70.0,
+      "max": 70.0,
+      "nominal": 70.0,
+      "unit": "mm"
+    },
+    "bodyLength": {
+      "min": 75.0,
+      "max": 75.0,
+      "nominal": 75.0,
+      "unit": "mm"
+    },
+    "airInletSize": {
+      "min": 64.0,
+      "max": 64.0,
+      "nominal": 64.0,
+      "unit": "mm"
+    },
+    "airInletLength": {
+      "min": 20.0,
+      "max": 20.0,
+      "nominal": 20.0,
+      "unit": "mm"
+    },
+    "fuelInletAt": {
+      "min": 55.0,
+      "max": 55.0,
+      "nominal": 55.0,
+      "unit": "mm"
+    }
+  },
+  "source": {
+    "url": "",
+    "kind": "placeholder",
+    "verified": false,
+    "note": "Bentuk dasar sementara karburator updraft tipe pelampung. Empat stud di sudut flange (±42 mm) sengaja di luar leher (±28 mm) dan badan (±35 mm) supaya mur terlihat dari bawah maupun samping. Ganti dengan mesh Tier 2 dari assets-src/tier2/carburetor."
+  },
+  "generator": "aes-asset-pipeline 0.1.0"
+}

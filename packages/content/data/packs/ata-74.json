@@ -15,7 +15,7 @@
       "actions": [
         { "kind": "inspect" },
         { "kind": "install" },
-        { "kind": "torque", "unit": "in-lb", "range": null, "source": null, "fasteners": 2 },
+        { "kind": "torque", "unit": "in-lb", "range": [100, 140], "source": "FAA AC 43.13-1B Tabel 7-1 (ulir halus 5/16-24, mur baja tipe tension MS20365/AN310, torsi pemasangan 100-140 in-lb, maks 225). Nilai umum dipakai karena AES-1 fiktif tanpa nilai pabrikan (par. 7-40).", "fasteners": 2 },
         { "kind": "adjust", "what": "timing", "unit": "deg", "range": null, "source": null },
         { "kind": "inspect" }
       ]
@@ -28,7 +28,7 @@
       "actions": [
         { "kind": "inspect" },
         { "kind": "install" },
-        { "kind": "torque", "unit": "in-lb", "range": null, "source": null, "fasteners": 2 },
+        { "kind": "torque", "unit": "in-lb", "range": [100, 140], "source": "FAA AC 43.13-1B Tabel 7-1 (ulir halus 5/16-24, mur baja tipe tension MS20365/AN310, torsi pemasangan 100-140 in-lb, maks 225). Nilai umum dipakai karena AES-1 fiktif tanpa nilai pabrikan (par. 7-40).", "fasteners": 2 },
         { "kind": "adjust", "what": "timing", "unit": "deg", "range": null, "source": null },
         { "kind": "inspect" }
       ]

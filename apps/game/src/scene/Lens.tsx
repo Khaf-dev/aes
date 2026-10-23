@@ -3,12 +3,14 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo } from "react";
 import * as THREE from "three";
 import { useGame } from "../state/store.ts";
+import { aimLocked } from "./CameraRig.tsx";
 import { LENS_RADIUS, lensUniform, rig } from "./shared.ts";
 
 export function Lens() {
   const gl = useThree((s) => s.gl);
   const camera = useThree((s) => s.camera);
-  const pointer = useThree((s) => s.pointer);
+  const mouse = useThree((s) => s.pointer);
+  const center = useMemo(() => new THREE.Vector2(0, 0), []);
   const raycaster = useMemo(() => new THREE.Raycaster(), []);
   useFrame(() => {
     const g = useGame.getState();
@@ -16,6 +18,7 @@ export function Lens() {
       lensUniform.value.w = 0;
       return;
     }
+    const pointer = aimLocked() ? center : mouse; // kursor terkunci: lensa di titik bidik tengah layar
     raycaster.setFromCamera(pointer, camera);
     const over = raycaster.intersectObject(rig.engine, true).length > 0;
     if (over !== g.lensOverEngine) useGame.setState({ lensOverEngine: over });

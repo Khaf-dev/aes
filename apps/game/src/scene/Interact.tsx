@@ -2,15 +2,17 @@
  * Satu titik masuk hover/klik untuk seluruh benda di hanggar. Tiap mesh membawa `userData.pick`;
  * mesh tanpa pick tetap menghalangi (benda padat). Klik = tekan-lepas tanpa banyak bergeser.
  */
-import { useThree, type ThreeEvent } from "@react-three/fiber";
+import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useGame } from "../state/store.ts";
+import { aimLocked } from "./CameraRig.tsx";
 import { exposureFromSlider, isShown, pickOf, rig, setHighlight, type Pick } from "./shared.ts";
 
 const CLICK_SLOP_PX = 6;
 const FASTENER_REACH = 0.15; // m di belakang permukaan badan part
 const raycaster = new THREE.Raycaster();
+const CENTER = new THREE.Vector2(0, 0);
 
 /** "skip" = tembus ke benda di belakangnya, "block" = menghalangi tanpa aksi. */
 function judge(o: THREE.Object3D): Pick | "skip" | "block" {
@@ -92,7 +94,7 @@ export function Interact({ children }: { children: React.ReactNode }) {
   const resolve = () => {
     if (!root.current) return null;
     // Sinar dari posisi kursor terakhir (sama untuk hover dan klik), bukan sinar bawaan event klik
-    raycaster.setFromCamera(pointer, camera);
+    raycaster.setFromCamera(aimLocked() ? CENTER : pointer, camera);
     // Benda tipis (batang engine mount/stand, tag kertas) tidak menutupi part interaktif di belakangnya; labelnya tetap muncul bila tidak ada
     let thin: { object: THREE.Object3D; pick: Pick | null } | null = null;
     const hits = raycaster.intersectObject(root.current, true);
@@ -117,28 +119,46 @@ export function Interact({ children }: { children: React.ReactNode }) {
 
   const onPointerMove = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
+    if (aimLocked()) return; // bidikan tengah layar diperbarui tiap frame
     const hit = resolve();
     setHovered(hit?.object ?? null, hit?.pick ?? null);
   };
-  const onPointerOut = () => setHovered(null, null);
+  const onPointerOut = () => { if (!aimLocked()) setHovered(null, null); };
+  // Kursor terkunci: yang ditunjuk = benda di titik tengah layar, berubah saat menoleh atau berjalan
+  const tick = useRef(0);
+  useFrame(() => {
+    if (!aimLocked() || tick.current++ % 2) return;
+    const hit = resolve();
+    setHovered(hit?.object ?? null, hit?.pick ?? null);
+  });
   // Klik = tekan-lepas tanpa banyak bergeser (drag dipakai kamera), dan berlaku untuk benda yang sedang di-hover.
   // Event klik R3F tidak dipakai: posisinya bisa berbeda dari hover terakhir.
   const gl = useThree((s) => s.gl);
   useEffect(() => {
-    let down: { x: number; y: number } | null = null;
-    const onDown = (e: PointerEvent) => { down = e.button === 0 ? { x: e.clientX, y: e.clientY } : null; };
+    let down: { x: number; y: number; locked: boolean } | null = null;
+    const onDown = (e: PointerEvent) => { down = e.button === 0 ? { x: e.clientX, y: e.clientY, locked: aimLocked() } : null; };
+    // Saat terkunci, posisi kursor tidak berubah: geseran dihitung dari movementX/Y
+    const onMove = (e: PointerEvent) => { if (down && aimLocked()) { down.x -= e.movementX; down.y -= e.movementY; } };
     const onUp = (e: PointerEvent) => {
       if (!down || e.button !== 0) return;
       const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
+      // Klik yang baru saja mengunci kursor tidak ikut berinteraksi; kalau browser menolak mengunci, klik tetap jalan
+      const lockingClick = !down.locked && aimLocked();
       down = null;
+      if (lockingClick) return;
       if (moved > CLICK_SLOP_PX) return;
       const pick = hoveredPick.current;
       setHovered(null, null);
       if (pick) act(pick);
     };
     gl.domElement.addEventListener("pointerdown", onDown);
+    gl.domElement.addEventListener("pointermove", onMove);
     gl.domElement.addEventListener("pointerup", onUp);
-    return () => { gl.domElement.removeEventListener("pointerdown", onDown); gl.domElement.removeEventListener("pointerup", onUp); };
+    return () => {
+      gl.domElement.removeEventListener("pointerdown", onDown);
+      gl.domElement.removeEventListener("pointermove", onMove);
+      gl.domElement.removeEventListener("pointerup", onUp);
+    };
   }, [gl]);
 
   return (

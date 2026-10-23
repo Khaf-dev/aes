@@ -14,7 +14,7 @@ const STAGE_TEXT: Record<Stage, string> = {
   install: "Pasang {part} ke pad",
   nuts: "Pasang ring & mur di stud (klik stud)",
   torque: "Kencangkan mur pengikat (T: kunci torsi)",
-  wire: "Pasang safety wire (W: tang safety wire)",
+  wire: "Pasang safety wire (K: tang safety wire)",
   cable: "Sambungkan {cable} (klik terminal di part)",
   signoff: "Sign-off task card di meja kerja",
   done: "Task card sudah di-sign-off",
@@ -57,6 +57,10 @@ function Hint() {
   const torqueMode = useGame((s) => s.torqueMode);
   const wireMode = useGame((s) => s.wireMode);
   const lensOn = useGame((s) => s.lensOn);
+  const camMode = useGame((s) => s.camMode);
+  const cam = camMode === "walk"
+    ? "Klik layar: kunci kursor, mouse untuk menoleh (Esc melepas) · WASD: jalan · C: jongkok · Q/E: turun/naik · Shift: cepat · F: fokus · Klik kanan: taruh part"
+    : "Mode fokus: geser untuk memutar, scroll untuk zoom · WASD: kembali jalan";
   const text = lensOn
     ? "Arahkan lensa ke mesin untuk melihat bagian dalam · X: tutup lensa"
     : held
@@ -64,9 +68,9 @@ function Hint() {
     : torqueMode
       ? "Arahkan ke mur · Scroll: setel dial · Klik mur: buka close-up kunci torsi · T: kembalikan ke shadow board"
       : wireMode
-        ? "Klik mur pertama lalu pasangannya untuk memasang safety wire · Klik mur berkawat: potong kawat · W: kembalikan tang"
-        : "Klik part di meja untuk mengambil · Klik stud: pasang mur · Klik mur: lepas mur · Klik meja kerja: task card · F: dekatkan kamera ke benda yang ditunjuk";
-  return <p className="hint">{text}</p>;
+        ? "Klik mur pertama lalu pasangannya untuk memasang safety wire · Klik mur berkawat: potong kawat · K: kembalikan tang"
+        : "Klik part di meja untuk mengambil · Klik stud: pasang mur · Klik mur: lepas mur · Klik meja kerja: task card";
+  return <p className="hint">{cam}<br />{text}</p>;
 }
 
 function Toolbar() {
@@ -84,7 +88,7 @@ function Toolbar() {
         <kbd>T</kbd>Kunci torsi
       </button>
       <button type="button" aria-pressed={wireMode} onClick={() => useGame.getState().setWireMode(!wireMode)}>
-        <kbd>W</kbd>Tang safety wire
+        <kbd>K</kbd>Tang safety wire
       </button>
       <button type="button" aria-pressed={spin} onClick={() => useGame.getState().setSpin(!spin)}>
         <kbd>P</kbd>Putar otomatis 360°
@@ -97,13 +101,33 @@ function Toolbar() {
   );
 }
 
+/** Posisi kursor di layar; saat kursor terkunci, titik bidik di tengah kanvas. */
+function cursorAt(e: PointerEvent): [number, number] {
+  const el = document.pointerLockElement;
+  if (!el) return [e.clientX, e.clientY];
+  const r = el.getBoundingClientRect();
+  return [r.left + r.width / 2, r.top + r.height / 2];
+}
+
+/** Titik bidik di tengah layar, hanya saat kursor terkunci. */
+function Crosshair() {
+  const [locked, setLocked] = useState(false);
+  useEffect(() => {
+    const change = () => setLocked(document.pointerLockElement !== null);
+    document.addEventListener("pointerlockchange", change);
+    return () => document.removeEventListener("pointerlockchange", change);
+  }, []);
+  return locked ? <div className="crosshair" aria-hidden="true" /> : null;
+}
+
 /** Label kertas kecil yang mengikuti kursor. Posisi diperbarui langsung di DOM supaya tidak render ulang. */
 function HoverLabel() {
   const hover = useGame((s) => s.hover);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const move = (e: PointerEvent) => {
-      if (ref.current) { ref.current.style.left = `${e.clientX}px`; ref.current.style.top = `${e.clientY}px`; }
+      const [x, y] = cursorAt(e);
+      if (ref.current) { ref.current.style.left = `${x}px`; ref.current.style.top = `${y}px`; }
     };
     window.addEventListener("pointermove", move);
     return () => window.removeEventListener("pointermove", move);
@@ -145,7 +169,8 @@ function LensCursor() {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const move = (e: PointerEvent) => {
-      if (ref.current) { ref.current.style.left = `${e.clientX}px`; ref.current.style.top = `${e.clientY}px`; }
+      const [x, y] = cursorAt(e);
+      if (ref.current) { ref.current.style.left = `${x}px`; ref.current.style.top = `${y}px`; }
     };
     window.addEventListener("pointermove", move);
     return () => window.removeEventListener("pointermove", move);
@@ -230,6 +255,7 @@ export function Hud() {
       <Toolbar />
       <Hint />
       <HoverLabel />
+      <Crosshair />
       <LensCursor />
       <WirePrompt />
     </>

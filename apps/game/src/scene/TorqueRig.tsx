@@ -7,17 +7,14 @@ import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { tick } from "../logic/clickWrench.ts";
-import { PAD_FACE_X, partDef } from "../data/parts.ts";
+import { partDef } from "../data/parts.ts";
 import { pull, useGame, type NutRef } from "../state/store.ts";
-import { CLOSEUP_LAYER, closeupDom, M, nutKey, rig, toBoard, V } from "./shared.ts";
+import { CLOSEUP_LAYER, closeupDom, M, nutKey, padFrame, padPoint, rig, toBoard, V } from "./shared.ts";
 
-/** Bagian OrbitControls yang dipakai di sini (drei memasangnya sebagai kontrol default). */
-type Orbit = { target: THREE.Vector3; enabled: boolean; update(): void };
 
-const X_AXIS = V(1, 0, 0);
 const deg = THREE.MathUtils.degToRad;
 
-/** Saat dipakai: socket (-z lokal) masuk ke mur ke arah -x dunia, gagang (-y lokal) keluar ke +z dan sedikit turun. */
+/** Saat dipakai (bingkai pad): socket (-z lokal) masuk ke mur ke arah -x, gagang (-y lokal) keluar ke +z dan sedikit turun. */
 const IN_USE = (() => {
   const z = V(1, 0, 0);
   const y = V(0, 0.3, -0.95).normalize();
@@ -30,8 +27,11 @@ const REST_POS = toBoard(977, 190).add(V(0, 0, 0.03));
 /** Pusat mur di koordinat lokal mesin, dari data pad. */
 function nutLocal({ part, index }: NutRef) {
   const { pad } = partDef(part);
-  return V(PAD_FACE_X + pad.nutX, pad.y, pad.z + (pad.studs[index] ?? 0));
+  const [y, z] = pad.studs[index] ?? [0, 0];
+  return padPoint(pad, pad.nutX, y, z);
 }
+/** Pose kunci saat dipakai di mur ini: IN_USE diputar ke bingkai pad. */
+const inUse = (at: NutRef) => padFrame(partDef(at.part).pad).q.multiply(IN_USE);
 
 export function TorqueRig() {
   const gltf = useGLTF("/tools/tool.torque-wrench.40-200.glb");
@@ -39,7 +39,6 @@ export function TorqueRig() {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const scene = useThree((s) => s.scene);
   const gl = useThree((s) => s.gl);
-  const controls = useThree((s) => s.controls) as Orbit | null;
   const wrenchAt = useGame((s) => s.wrenchAt);
   const closeup = useGame((s) => s.closeup);
 
@@ -74,8 +73,9 @@ export function TorqueRig() {
   useEffect(() => {
     if (wrenchAt && rig.engine) {
       rig.engine.updateMatrixWorld(true);
-      wrench.position.copy(rig.engine.localToWorld(nutLocal(wrenchAt).add(V(0.051, 0, 0))));
-      wrench.quaternion.copy(IN_USE);
+      const { normal } = padFrame(partDef(wrenchAt.part).pad);
+      wrench.position.copy(rig.engine.localToWorld(nutLocal(wrenchAt).addScaledVector(normal, 0.051)));
+      wrench.quaternion.copy(inUse(wrenchAt));
     } else {
       wrench.position.copy(REST_POS);
       wrench.quaternion.identity();
@@ -90,13 +90,13 @@ export function TorqueRig() {
     const shown = [rig.nuts.get(key), rig.studs.get(key), rig.pads.get(closeup.part)].filter((o) => o !== undefined);
     scene.traverse((o) => { if ((o as THREE.Light).isLight) o.layers.enable(CLOSEUP_LAYER); });
     shown.forEach((o) => o.layers.enable(CLOSEUP_LAYER));
-    const saved = { pos: camera.position.clone(), target: controls?.target.clone() ?? null };
-    if (controls) controls.enabled = false;
+    // Pandangan dikembalikan persis seperti sebelum close-up (kamera jalan maupun orbit); OrbitControls diatur CameraRig
+    const saved = { pos: camera.position.clone(), quat: camera.quaternion.clone() };
 
     wrench.updateMatrixWorld(true);
     const center = wrench.localToWorld(V(0, -0.13, 0));
     const handle = V(0, -1, 0).applyQuaternion(wrench.quaternion);
-    const forward = V(-1, 0, 0);
+    const forward = padFrame(partDef(closeup.part).pad).normal.negate(); // lurus di sumbu stud, menghadap ke pad
     camera.up.crossVectors(forward, handle).normalize();
     const halfTan = Math.tan(deg(camera.fov / 2));
     const dist = Math.max(0.25, 0.5 / (2 * halfTan * camera.aspect)); // lebar pandang ~50 cm: kunci 29 cm + ruang overlay
@@ -109,14 +109,10 @@ export function TorqueRig() {
       camera.layers.set(0);
       camera.up.set(0, 1, 0);
       camera.position.copy(saved.pos);
-      if (controls && saved.target) {
-        controls.target.copy(saved.target);
-        controls.enabled = true;
-        controls.update();
-      }
-      wrench.quaternion.copy(IN_USE);
+      camera.quaternion.copy(saved.quat);
+      wrench.quaternion.copy(inUse(closeup));
     };
-  }, [closeup, camera, controls, scene, wrench]);
+  }, [closeup, camera, scene, wrench]);
 
   const projected = useMemo(() => new THREE.Vector3(), []);
   useFrame((_, dt) => {
@@ -127,9 +123,10 @@ export function TorqueRig() {
     if (pull.state.seated && !before.seated) game.setCloseupStatus("Mur duduk. Terus tarik sampai klik.");
 
     // Kunci dan mur berputar searah jarum jam dilihat dari ujung stud (ulir kanan mengencang)
-    wrench.quaternion.setFromAxisAngle(X_AXIS, -deg(pull.state.wrenchAng)).multiply(IN_USE);
+    const axis = padFrame(partDef(game.closeup.part).pad).normal;
+    wrench.quaternion.setFromAxisAngle(axis, -deg(pull.state.wrenchAng)).multiply(inUse(game.closeup));
     const nut = rig.nuts.get(nutKey(game.closeup.part, game.closeup.index));
-    if (nut && pull.state.nutAng !== before.nutAng) nut.rotateOnWorldAxis(X_AXIS, -deg(pull.state.nutAng - before.nutAng));
+    if (nut && pull.state.nutAng !== before.nutAng) nut.rotateOnWorldAxis(axis, -deg(pull.state.nutAng - before.nutAng));
 
     // Overlay: cap KLIK dan garis penunjuk dari tepi skala di barrel 3D ke kaca pembesar
     if (closeupDom.klik) closeupDom.klik.style.opacity = pull.state.klik.toFixed(2);

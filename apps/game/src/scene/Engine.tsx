@@ -1,13 +1,12 @@
 /** Mesin piston placeholder (bentuk dasar) + pad aksesori, stud, dan mur yang dipasang pemain. */
 import { useMemo } from "react";
 import * as THREE from "three";
-import { PAD_FACE_X, PARTS } from "../data/parts.ts";
+import { PARTS } from "../data/parts.ts";
 import { nutLabel, useGame } from "../state/store.ts";
-import { ENGINE_POS, INTERIOR, M, NO_RAYCAST, nutKey, rig, solid, V, XRAY_LINE } from "./shared.ts";
+import { ENGINE_POS, FIREWALL_BACK_X, INTERIOR, M, NO_RAYCAST, nutKey, padFrame, padPoint, rig, solid, STAND, V, XRAY_LINE } from "./shared.ts";
 
 const finGeo = new THREE.CylinderGeometry(0.13, 0.13, 0.006, 28);
 const barrelGeo = new THREE.CylinderGeometry(0.095, 0.095, 0.24, 24);
-const padGeo = new THREE.CylinderGeometry(0.045, 0.045, 0.02, 24);
 const studGeo = new THREE.CylinderGeometry(0.004, 0.004, 0.03, 8);
 const nutGeo = new THREE.CylinderGeometry(0.009, 0.009, 0.008, 6);
 
@@ -102,45 +101,64 @@ function Exhaust() {
   return <>{tubes.map((g, i) => <mesh key={i} geometry={g} material={M.exhaust} castShadow userData={decor("ATA 78", "Pipa knalpot")} />)}</>;
 }
 
-/** Pad aksesori di muka belakang gearbox (muka pad di x = PAD_FACE_X, normal +x), stud, dan mur. */
+const padGeos = new Map<string, THREE.CylinderGeometry>();
+/** Piringan pad cukup lebar untuk semua stud-nya. */
+const padGeoOf = (def: (typeof PARTS)[number]) => {
+  let g = padGeos.get(def.assetId);
+  if (!g) {
+    const r = Math.max(0.045, ...def.pad.studs.map(([y, z]) => Math.hypot(y, z) + 0.015));
+    padGeos.set(def.assetId, (g = new THREE.CylinderGeometry(r, r, 0.02, 32)));
+  }
+  return g;
+};
+
+/**
+ * Pad dudukan, stud, dan mur tiap part. Semuanya ditulis di bingkai lokal pad (x = normal keluar dari pad),
+ * jadi pad di muka belakang gearbox (normal +x) dan pad karburator di bawah bak oli (normal -y) memakai kode yang sama.
+ */
 function Mounts() {
   const rakit = useGame((s) => s.rakit);
   return (
     <>
-      {PARTS.map((def) => (
-        <group key={def.assetId}>
-          <mesh
-            ref={(m) => { if (m) rig.pads.set(def.assetId, m); }}
-            geometry={padGeo} material={M.castAlu} rotation-z={Math.PI / 2}
-            position={[PAD_FACE_X - 0.01, def.pad.y, def.pad.z]} castShadow receiveShadow
-            userData={{ pick: { kind: "pad", part: def.assetId, code: def.pad.code, name: def.pad.name } }}
-          />
-          {def.pad.studs.map((dz, index) => {
-            const key = nutKey(def.assetId, index);
-            const nut = rakit.nuts[def.assetId]?.[index];
-            return (
-              <group key={index}>
-                <mesh
-                  ref={(m) => { if (m) rig.studs.set(key, m); }}
-                  geometry={studGeo} material={M.steel} rotation-z={Math.PI / 2}
-                  position={[PAD_FACE_X + 0.015, def.pad.y, def.pad.z + dz]} castShadow
-                  userData={{ pick: { kind: "stud", part: def.assetId, index, code: def.pad.code, name: `Stud dudukan ${def.label} #${index + 1}` } }}
-                />
-                {nut?.installed && (
-                  <mesh
-                    ref={(m) => { if (m) rig.nuts.set(key, m); else rig.nuts.delete(key); }}
-                    geometry={nutGeo} material={M.steel} rotation-z={Math.PI / 2}
-                    position={[PAD_FACE_X + def.pad.nutX, def.pad.y, def.pad.z + dz]} castShadow
-                    userData={{ pick: { kind: "nut", part: def.assetId, index, code: def.pad.code, name: nutLabel(rakit, { part: def.assetId, index }) } }}
-                  />
-                )}
-              </group>
-            );
-          })}
-          {(rakit.wires[def.assetId] ?? []).map((w) => <SafetyWire key={`${w.a}-${w.b}`} def={def} a={w.a} b={w.b} />)}
-          {def.cable && rakit.parts[def.assetId] === "installed" && <TerminalCable def={def} connected={rakit.cables[def.assetId] ?? false} />}
-        </group>
-      ))}
+      {PARTS.map((def) => {
+        const frame = padFrame(def.pad);
+        return (
+          <group key={def.assetId}>
+            <group position={frame.origin} quaternion={frame.q}>
+              <mesh
+                ref={(m) => { if (m) rig.pads.set(def.assetId, m); }}
+                geometry={padGeoOf(def)} material={M.castAlu} rotation-z={Math.PI / 2}
+                position={[-0.01, 0, 0]} castShadow receiveShadow
+                userData={{ pick: { kind: "pad", part: def.assetId, code: def.pad.code, name: def.pad.name } }}
+              />
+              {def.pad.studs.map(([dy, dz], index) => {
+                const key = nutKey(def.assetId, index);
+                const nut = rakit.nuts[def.assetId]?.[index];
+                return (
+                  <group key={index}>
+                    <mesh
+                      ref={(m) => { if (m) rig.studs.set(key, m); }}
+                      geometry={studGeo} material={M.steel} rotation-z={Math.PI / 2}
+                      position={[0.015, dy, dz]} castShadow
+                      userData={{ pick: { kind: "stud", part: def.assetId, index, code: def.pad.code, name: `Stud dudukan ${def.label} #${index + 1}` } }}
+                    />
+                    {nut?.installed && (
+                      <mesh
+                        ref={(m) => { if (m) rig.nuts.set(key, m); else rig.nuts.delete(key); }}
+                        geometry={nutGeo} material={M.steel} rotation-z={Math.PI / 2}
+                        position={[def.pad.nutX, dy, dz]} castShadow
+                        userData={{ pick: { kind: "nut", part: def.assetId, index, code: def.pad.code, name: nutLabel(rakit, { part: def.assetId, index }) } }}
+                      />
+                    )}
+                  </group>
+                );
+              })}
+              {(rakit.wires[def.assetId] ?? []).map((w) => <SafetyWire key={`${w.a}-${w.b}`} def={def} a={w.a} b={w.b} />)}
+            </group>
+            {def.cable && <TerminalCable def={def} installed={rakit.parts[def.assetId] === "installed"} connected={rakit.cables[def.assetId] ?? false} />}
+          </group>
+        );
+      })}
     </>
   );
 }
@@ -148,32 +166,57 @@ function Mounts() {
 const brass = new THREE.MeshStandardMaterial({ color: 0xb08d57, metalness: 1, roughness: 0.35 });
 const terminalGeo = new THREE.CylinderGeometry(0.006, 0.006, 0.014, 12);
 
+/** Jalur di belakang firewall dari grommet ke ujungnya (koordinat dunia), lalu ke lokal mesin. */
+const toLocal = (v: THREE.Vector3) => v.clone().sub(ENGINE_POS);
+function behindFirewall(to: "magSwitch" | "busBox" | "fuel", grommet: THREE.Vector3) {
+  const back = V(FIREWALL_BACK_X + 0.01, grommet.y, grommet.z);
+  const end = to === "fuel" ? STAND.gascolator.clone().add(V(0, -0.04, 0)) : STAND[to].clone().add(V(-0.03, 0, 0));
+  return [end, V(back.x + 0.02, (back.y + end.y) / 2, (back.z + end.z) / 2), back];
+}
+
 /**
- * Terminal kabel di part + kabelnya ke firewall (P-lead ke kunci kontak, output alternator ke bus).
- * Posisi terminal dari `cable.terminal`: untuk magneto masih perkiraan di tutup belakang, untuk alternator dari metadata model.
+ * Terminal di part + kabel/selangnya. Kabel menembus pelat firewall uji lewat grommet dan berakhir di ujungnya:
+ * P-lead di kunci kontak magneto, kabel output alternator di kotak bus/relay, selang dari strainer bahan bakar stand.
+ * Posisi terminal dari `cable.terminal` di bingkai pad: untuk magneto masih perkiraan, untuk alternator dan karburator dari metadata model.
  */
-function TerminalCable({ def, connected }: { def: (typeof PARTS)[number]; connected: boolean }) {
-  const terminal = V(PAD_FACE_X + def.cable!.terminal[0], def.pad.y + def.cable!.terminal[1], def.pad.z);
+function TerminalCable({ def, installed, connected }: { def: (typeof PARTS)[number]; installed: boolean; connected: boolean }) {
+  const frame = padFrame(def.pad);
+  const { terminal: [tx, ty], to, name } = def.cable!;
+  const fuel = to === "fuel";
   const cable = useMemo(() => {
-    const end = connected ? terminal : V(0.86, def.pad.y - 0.05, def.pad.z * 2.2); // tidak tersambung: ujung kabel menggantung di firewall
-    const curve = new THREE.CatmullRomCurve3([V(0.88, def.pad.y + 0.2, def.pad.z * 1.6), V(0.8, def.pad.y + 0.12, def.pad.z * 1.3), end]);
-    return new THREE.TubeGeometry(curve, 24, 0.003, 8);
-  }, [connected, def, terminal.x]);
+    const terminal = padPoint(def.pad, tx, ty, 0);
+    const world = terminal.clone().add(ENGINE_POS);
+    // Grommet di pelat firewall, kira-kira segaris dengan terminalnya
+    const grommet = V(FIREWALL_BACK_X - 0.04, world.y + (fuel ? 0 : 0.1), Math.max(-0.38, Math.min(0.38, world.z * 1.5 + (fuel ? 0.15 : 0))));
+    const front = toLocal(grommet).add(V(-0.012, 0, 0));
+    const tail = [...behindFirewall(to, grommet).map(toLocal), toLocal(grommet).add(V(0.02, 0, 0)), front];
+    // Tidak tersambung: ujung kabel menggantung keluar dari grommet
+    const end = connected ? [front.clone().lerp(terminal, 0.5).add(V(0, fuel ? -0.04 : 0.03, 0)), terminal] : [front.clone().add(V(-0.06, -0.1, 0))];
+    return { tube: new THREE.TubeGeometry(new THREE.CatmullRomCurve3([...tail, ...end]), 48, fuel ? 0.006 : 0.003, 8), grommet: toLocal(grommet) };
+  }, [connected, def, tx, ty, to, fuel]);
   return (
     <>
-      <mesh geometry={terminalGeo} material={brass} position={terminal} rotation-z={Math.PI / 2} castShadow
-        userData={{ pick: { kind: "terminal", part: def.assetId, code: def.cable!.stepId, name: `Terminal ${def.cable!.name.toLowerCase()} ${def.label} · ${connected ? "tersambung, klik untuk melepas" : "klik untuk menyambung"}` } }} />
-      <mesh geometry={cable} material={M.rubber} castShadow raycast={NO_RAYCAST} />
+      {installed && (
+        <group position={frame.origin} quaternion={frame.q}>
+          <mesh geometry={terminalGeo} material={brass} position={[tx, ty, 0]} castShadow
+            userData={{ pick: { kind: "terminal", part: def.assetId, code: def.cable!.stepId, name: `Terminal ${name.toLowerCase()} ${def.label} · ${connected ? "tersambung, klik untuk melepas" : "klik untuk menyambung"}` } }} />
+        </group>
+      )}
+      <mesh geometry={cable.tube} material={fuel ? M.fuelHose : M.rubber} castShadow raycast={NO_RAYCAST} />
+      {/* Grommet karet / fitting bulkhead di pelat firewall */}
+      <mesh position={cable.grommet} rotation-y={Math.PI / 2} material={fuel ? brass : M.rubber} raycast={NO_RAYCAST}>
+        <torusGeometry args={[fuel ? 0.012 : 0.009, 0.004, 8, 20]} />
+      </mesh>
     </>
   );
 }
 
-/** Kawat safety wire antar muka mur, sedikit melengkung keluar. Ukuran kawat hanya visual. */
+/** Kawat safety wire antar muka mur (bingkai pad), sedikit melengkung keluar. Ukuran kawat hanya visual. */
 function SafetyWire({ def, a, b }: { def: (typeof PARTS)[number]; a: number; b: number }) {
   const geometry = useMemo(() => {
-    const x = PAD_FACE_X + def.pad.nutX + 0.005;
-    const za = def.pad.z + (def.pad.studs[a] ?? 0), zb = def.pad.z + (def.pad.studs[b] ?? 0);
-    const curve = new THREE.CatmullRomCurve3([V(x, def.pad.y, za), V(x + 0.006, def.pad.y - 0.008, (za + zb) / 2), V(x, def.pad.y, zb)]);
+    const x = def.pad.nutX + 0.005;
+    const [ya, za] = def.pad.studs[a] ?? [0, 0], [yb, zb] = def.pad.studs[b] ?? [0, 0];
+    const curve = new THREE.CatmullRomCurve3([V(x, ya, za), V(x + 0.006, (ya + yb) / 2 - 0.008, (za + zb) / 2), V(x, yb, zb)]);
     return new THREE.TubeGeometry(curve, 24, 0.0005, 6);
   }, [def, a, b]);
   return <mesh geometry={geometry} material={M.steel} castShadow raycast={NO_RAYCAST} />;

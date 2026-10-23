@@ -36,8 +36,10 @@ export interface RunUpReport {
 const defectOf = (defects: readonly Defect[], stepId: string, kinds: readonly Defect["kind"][]) =>
   defects.find((d) => d.stepId === stepId && kinds.includes(d.kind)) ?? null;
 
-/** Fungsi murni: defect perakitan + apakah starter bekerja → hasil start, mag check, dan tes kunci OFF. */
-export function runUp(magnetos: readonly MagnetoSpec[], defects: readonly Defect[], starterOk: boolean): RunUpReport {
+/**
+ * Fungsi murni: defect perakitan + apakah starter bekerja dan bahan bakar sampai → hasil start, mag check, dan tes kunci OFF.
+ */
+export function runUp(magnetos: readonly MagnetoSpec[], defects: readonly Defect[], starterOk: boolean, fuelOk = true): RunUpReport {
   const notFiring = new Map(magnetos.map((m) => [m.id, defectOf(defects, m.installStep, ["missing", "wrongPart"])]));
   const notGrounded = new Map(magnetos.map((m) => [m.id, defectOf(defects, m.pLeadStep, ["missing"])]));
   const firing = (m: MagnetoSpec) => notFiring.get(m.id) === null;
@@ -50,7 +52,7 @@ export function runUp(magnetos: readonly MagnetoSpec[], defects: readonly Defect
   });
 
   const firingAtBoth = magnetos.filter(firing).length;
-  const started = starterOk && firingAtBoth > 0;
+  const started = starterOk && fuelOk && firingAtBoth > 0;
   if (!started) return { started, magCheck: [], offCheck: null, findings };
 
   const magCheck = magnetos.map((m) => {

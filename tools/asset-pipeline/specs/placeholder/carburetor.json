@@ -1,0 +1,47 @@
+{
+  "id": "acc.carburetor.mk1",
+  "standard": "Placeholder visual, bukan data teknis",
+  "kind": "carburetor",
+  "name": "Karburator updraft (placeholder AES)",
+  "tier": 2,
+  "units": "mm",
+  "placeholder": true,
+  "dims": {
+    "flangeSize": {
+      "value": 110
+    },
+    "flangeThickness": {
+      "value": 10
+    },
+    "studSpacing": {
+      "value": 84
+    },
+    "neckSize": {
+      "value": 56
+    },
+    "neckLength": {
+      "value": 30
+    },
+    "bodySize": {
+      "value": 70
+    },
+    "bodyLength": {
+      "value": 75
+    },
+    "airInletSize": {
+      "value": 64
+    },
+    "airInletLength": {
+      "value": 20
+    },
+    "fuelInletAt": {
+      "value": 55
+    }
+  },
+  "source": {
+    "url": "",
+    "kind": "placeholder",
+    "verified": false,
+    "note": "Bentuk dasar sementara karburator updraft tipe pelampung. Empat stud di sudut flange (±42 mm) sengaja di luar leher (±28 mm) dan badan (±35 mm) supaya mur terlihat dari bawah maupun samping. Ganti dengan mesh Tier 2 dari assets-src/tier2/carburetor."
+  }
+}

@@ -13,15 +13,18 @@ Tambahkan `?debug` di URL untuk kait uji otomatis (`window.__aes`).
 ## Isi mode rakit
 
 - Hanggar malam dengan lampu satuan fisik (lumen, lux, decay 2) dan headlamp mekanik di kamera.
-- Kamera orbit berbatas ruangan, tidak menembus benda padat. Benda yang menghalangi pandangan (firewall, engine mount, stand) jadi tembus pandang; F mendekatkan kamera ke benda yang ditunjuk.
+- Kamera badan engineer (first person): klik layar untuk mengunci kursor, mouse menoleh, bidik dan klik pakai titik tengah layar (Esc melepas kursor, klik kanan menaruh part kembali); WASD/panah jalan, C jongkok, Q/E turun/naik (tinggi mata 0,55–1,8 m), Shift cepat. Badan tidak menembus benda padat.
+- F: mode fokus (orbit) di sekitar benda yang ditunjuk; benda yang menghalangi (firewall, engine mount, stand) jadi tembus pandang. WASD kembali jalan, P putar otomatis memutari mesin, R kembali ke posisi awal.
 - Klik meja kerja membuka task card (tab ke semua task card).
 - Buku panduan (B): halaman per task card dengan WARNING/CAUTION/NOTE bersumber (FAA), prosedur dari data langkah, dan daftar rujukan.
 - Ambil magneto, starter, atau alternator dari meja part, pasang ke pad lewat bayangan pemasangan (pad lain menolak), pasang ring & mur di stud.
 - Mode kunci torsi (T) dan close-up hybrid: kunci 3D dari asset pipeline + skala mikrometer di kaca pembesar.
-- Tang safety wire (W): klik mur pertama lalu pasangannya, pilih arah lilitan sendiri; klik mur berkawat untuk memotong.
+- Tang safety wire (K): klik mur pertama lalu pasangannya, pilih arah lilitan sendiri; klik mur berkawat untuk memotong.
 - Mode dokumen: klik task card di meja kerja untuk checklist (centang + paraf sendiri) dan tanda tangan. Tidak memeriksa apa pun.
-- Magneto kiri & kanan, starter, alternator (mesh placeholder); P-lead magneto dan kabel output alternator disambung lewat klik terminal di part.
+- Magneto kiri & kanan, starter, alternator, karburator (dua terakhir mesh placeholder CadQuery); P-lead magneto, kabel output alternator, dan selang bahan bakar karburator disambung lewat klik terminal di part.
+- Karburator dipasang di pad bawah bak oli (4 mur). Tanpa karburator atau selang bahan bakar, mesin berputar tapi tidak hidup saat tes.
 - FOD: alat yang belum dikembalikan ke shadow board (T/W masih aktif) saat tes dimulai jadi temuan FOD di laporan.
+- Torsi mur klem bersumber (AC 43.13-1B Tabel 7-1, 100–140 in-lb); setelah tes, inspektur mengecek torsi mur klem dan menemukan mur yang kurang torsi.
 - Tes darat (G): ground power-up (listrik) + start mesin dan mag check (pengapian) + pengisian alternator di sim-core, hasilnya laporan kertas kuning dengan clue task card.
 - Lensa x-ray (X): kulit mesin terbuka di lingkaran kursor, hanya komponen dalam yang bisa dipilih.
 - Area kerja: meja kerja + task card, shadow board (kunci torsi tergantung di slotnya), papan tulis, troli, APAR,

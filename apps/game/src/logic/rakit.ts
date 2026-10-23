@@ -137,7 +137,7 @@ export function removeNut(s: RakitState, partId: string, index: number): Outcome
   const nut = nutsOf(s, partId)[index];
   if (!nut?.installed) return { state: s };
   if (isWired(s, partId, index)) {
-    return { state: s, toast: { text: `Mur #${index + 1} masih diikat safety wire. Potong kawatnya dulu (W: tang safety wire).`, bad: true } };
+    return { state: s, toast: { text: `Mur #${index + 1} masih diikat safety wire. Potong kawatnya dulu (K: tang safety wire).`, bad: true } };
   }
   return {
     state: withNut(s, partId, index, EMPTY_NUT),

@@ -31,9 +31,9 @@ const BENCH = { x: -1.4, z: BACK + 0.42 } as const;
 /** Task card di atas papan klip meja kerja, satu per langkah perakitan. Posisinya dipakai kamera mode dokumen. */
 export const TASK_CARDS = PLAYABLE_STEP_IDS.map((stepId, i) => ({
   stepId,
-  // Dua baris papan klip (4 per baris) di sisi kiri meja kerja
-  position: V(BENCH.x - 0.01 - (i % 4) * 0.275, 0.955, BENCH.z - 0.17 + Math.floor(i / 4) * 0.36),
-  yaw: 0.03 - (i % 4) * 0.02,
+  // Dua baris papan klip (5 per baris); nampan mur, mug, dan ragum di ujung kanan meja
+  position: V(BENCH.x + 0.3 - (i % 5) * 0.275, 0.955, BENCH.z - 0.17 + Math.floor(i / 5) * 0.36),
+  yaw: 0.03 - (i % 5) * 0.015,
 }));
 
 function TaskCard({ stepId, position, yaw }: (typeof TASK_CARDS)[number]) {
@@ -87,13 +87,13 @@ function Workbench() {
         <Box size={[0.16, 0.07, 0.03]} position={[bx + 0.7, 1.06, bz + 0.27]} material={M.steel} />
         <Box size={[0.16, 0.07, 0.03]} position={[bx + 0.7, 1.06, bz + 0.2]} material={M.steel} />
         <Box size={[0.5, 0.22, 0.26]} position={[bx - 0.5, 0.33, bz]} material={M.redPaint} />
-        <Box size={[0.24, 0.02, 0.16]} position={[bx + 0.25, 0.955, bz + 0.12]} material={M.darkSteel} />
+        <Box size={[0.24, 0.02, 0.16]} position={[bx + 0.62, 0.955, bz - 0.2]} material={M.darkSteel} />
         {Array.from({ length: 6 }, (_, i) => (
           <mesh key={i} geometry={nutGeo} material={M.steel} castShadow
-            position={[bx + 0.18 + (i % 3) * 0.05, 0.972, bz + 0.09 + Math.floor(i / 3) * 0.06]} />
+            position={[bx + 0.55 + (i % 3) * 0.05, 0.972, bz - 0.23 + Math.floor(i / 3) * 0.06]} />
         ))}
-        <mesh position={[bx + 0.45, 0.995, bz - 0.22]} material={M.ceramic} castShadow><cylinderGeometry args={[0.04, 0.036, 0.1, 20]} /></mesh>
-        <mesh position={[bx + 0.49, 1.0, bz - 0.22]} material={M.ceramic} castShadow><torusGeometry args={[0.026, 0.007, 8, 16]} /></mesh>
+        <mesh position={[bx + 0.84, 0.995, bz - 0.04]} material={M.ceramic} castShadow><cylinderGeometry args={[0.04, 0.036, 0.1, 20]} /></mesh>
+        <mesh position={[bx + 0.88, 1.0, bz - 0.04]} material={M.ceramic} castShadow><torusGeometry args={[0.026, 0.007, 8, 16]} /></mesh>
       </group>
       {TASK_CARDS.map((c) => <TaskCard key={c.stepId} {...c} />)}
     </>

@@ -5,17 +5,19 @@
 import { validateAircraft } from "@aes/content";
 import network from "@aes/content/data/networks/aes-1-electrical.json";
 import ata24 from "@aes/content/data/packs/ata-24.json";
+import ata73 from "@aes/content/data/packs/ata-73.json";
 import ata74 from "@aes/content/data/packs/ata-74.json";
 import ata80 from "@aes/content/data/packs/ata-80.json";
 import groundPowerUp from "@aes/content/data/scenarios/ground-power-up.json";
 import engineRun from "@aes/content/data/scenarios/engine-run.json";
 import ignition from "@aes/content/data/ignition/aes-1-ignition.json";
 import handbook from "@aes/content/data/handbook/aes-1-handbook.json";
+import fuel from "@aes/content/data/fuel/aes-1-fuel.json";
 import { detectDefects, type AssemblyLog, type Defect, type PerformedAction, type StepRecord, type StepSpec } from "@aes/sim-core";
 import { PARTS, PLAYABLE_STEP_IDS, partDef, type PartDef } from "../data/parts.ts";
 import { stage, type RakitState } from "./rakit.ts";
 
-const aircraft = validateAircraft({ packs: [ata24, ata74, ata80], network, scenarios: [groundPowerUp, engineRun], ignition, handbook });
+const aircraft = validateAircraft({ packs: [ata24, ata73, ata74, ata80], network, scenarios: [groundPowerUp, engineRun], ignition, fuel, handbook });
 if (!aircraft.ok) throw new Error(`Data pesawat tidak valid:\n${aircraft.errors.join("\n")}`);
 /** Data pesawat AES-1 yang sudah divalidasi: semua langkah, jaringan listrik, skenario tes. */
 export const AIRCRAFT = aircraft.value;

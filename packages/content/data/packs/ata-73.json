@@ -1,0 +1,62 @@
+{
+  "parts": [
+    {
+      "id": "fuel.carburetor",
+      "name": "Karburator",
+      "ataChapter": 73,
+      "tier": 2
+    },
+    {
+      "id": "fuel.line.carb-inlet",
+      "name": "Selang bahan bakar ke karburator",
+      "ataChapter": 73,
+      "tier": 3
+    }
+  ],
+  "steps": [
+    {
+      "id": "73-10-01",
+      "title": "Pasang karburator",
+      "partId": "fuel.carburetor",
+      "requires": [],
+      "actions": [
+        {
+          "kind": "inspect"
+        },
+        {
+          "kind": "install"
+        },
+        {
+          "kind": "torque",
+          "unit": "in-lb",
+          "range": [
+            100,
+            140
+          ],
+          "source": "FAA AC 43.13-1B Tabel 7-1 (ulir halus 5/16-24, mur baja tipe tension MS20365/AN310, torsi pemasangan 100-140 in-lb, maks 225). Nilai umum dipakai karena AES-1 fiktif tanpa nilai pabrikan (par. 7-40).",
+          "fasteners": 4
+        },
+        {
+          "kind": "inspect"
+        }
+      ]
+    },
+    {
+      "id": "73-10-02",
+      "title": "Sambungkan selang bahan bakar ke karburator",
+      "partId": "fuel.line.carb-inlet",
+      "requires": [
+        "73-10-01"
+      ],
+      "actions": [
+        {
+          "kind": "connect",
+          "to": "fuel.carburetor"
+        },
+        {
+          "kind": "inspect"
+        }
+      ]
+    }
+  ]
+}

@@ -11,7 +11,7 @@
     "bodyDiameter": { "value": 110 },
     "flangeDiameter": { "value": 90 },
     "flangeThickness": { "value": 8 },
-    "earSpacing": { "value": 100 },
+    "earSpacing": { "value": 150 },
     "earRadius": { "value": 12 },
     "shaftDiameter": { "value": 22 },
     "shaftLength": { "value": 18 }
@@ -20,6 +20,6 @@
     "url": "",
     "kind": "placeholder",
     "verified": false,
-    "note": "Mesh sementara karena kuota TRELLIS.2 habis. Semua ukuran hanya visual; ganti dengan mesh Tier 2 dari assets-src/tier2/alternator dan dimensi bersumber."
+    "note": "Mesh sementara karena kuota TRELLIS.2 habis. Telinga flange sengaja di luar badan (±75 mm, badan Ø110) supaya mur terlihat dan mudah dijangkau. Semua ukuran hanya visual; ganti dengan mesh Tier 2 dari assets-src/tier2/alternator dan dimensi bersumber."
   }
 }

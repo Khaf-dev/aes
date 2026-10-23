@@ -54,7 +54,7 @@ function useKeyboard() {
       if (e.key === "Escape") g.putBack();
       else if (k === "t") g.setTorqueMode(!g.torqueMode);
       else if (k === "x") g.setLens(!g.lensOn);
-      else if (k === "w") g.setWireMode(!g.wireMode);
+      else if (k === "k") g.setWireMode(!g.wireMode);
       else if (k === "g") g.runTest();
       else if (k === "p") g.setSpin(!g.spin);
       else if (k === "r") cameraApi.reset();

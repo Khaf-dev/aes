@@ -1,12 +1,14 @@
 import type { z } from "zod";
 import {
   ContentPackSchema,
+  FuelSchema,
   HandbookSchema,
   IgnitionSchema,
   NetworkSchema,
   TestScenarioSchema,
   type AssemblyStep,
   type ContentPack,
+  type FuelData,
   type HandbookData,
   type IgnitionData,
   type NetworkData,
@@ -24,6 +26,7 @@ export interface Aircraft {
   readonly network: NetworkData;
   readonly scenarios: readonly TestScenarioData[];
   readonly ignition: IgnitionData;
+  readonly fuel: FuelData;
   readonly handbook: HandbookData;
 }
 
@@ -111,6 +114,7 @@ export interface AircraftInput {
   readonly network: unknown;
   readonly scenarios: readonly unknown[];
   readonly ignition: unknown;
+  readonly fuel: unknown;
   readonly handbook: unknown;
 }
 
@@ -198,6 +202,15 @@ export function validateAircraft(input: AircraftInput): Result<Aircraft> {
   }
   for (const id of duplicates(ignition.data.magnetos.map((m) => m.id))) errors.push(`Magneto duplikat: ${id}`);
 
+  const fuel = FuelSchema.safeParse(input.fuel);
+  if (!fuel.success) {
+    errors.push(...issues(fuel.error, "fuel."));
+    return { ok: false, errors };
+  }
+  for (const ref of fuel.data.steps) {
+    if (!stepIds.has(ref)) errors.push(`Pasokan bahan bakar merujuk langkah yang tidak ada: ${ref}`);
+  }
+
   const handbook = HandbookSchema.safeParse(input.handbook);
   if (!handbook.success) {
     errors.push(...issues(handbook.error, "handbook."));
@@ -219,6 +232,6 @@ export function validateAircraft(input: AircraftInput): Result<Aircraft> {
   }
 
   return errors.length === 0
-    ? { ok: true, value: { parts, steps, network: network.data, scenarios, ignition: ignition.data, handbook: handbook.data } }
+    ? { ok: true, value: { parts, steps, network: network.data, scenarios, ignition: ignition.data, fuel: fuel.data, handbook: handbook.data } }
     : { ok: false, errors };
 }

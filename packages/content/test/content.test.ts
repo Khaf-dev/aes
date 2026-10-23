@@ -126,3 +126,10 @@ describe("validateAircraft · handbook", () => {
     expect(errorsOf(validateAircraft({ ...input, handbook: { ...hb, entries: [bad] } })).join("\n")).toMatch(/stepId atau action/);
   });
 });
+
+describe("validateAircraft · bahan bakar", () => {
+  it("menolak pasokan yang merujuk langkah tidak ada", () => {
+    const result = validateAircraft({ ...loadAircraftInput(), fuel: { steps: ["73-99-01"] } });
+    expect(errorsOf(result).join("\n")).toMatch(/73-99-01/);
+  });
+});

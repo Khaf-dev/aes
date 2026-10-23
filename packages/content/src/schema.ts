@@ -143,6 +143,10 @@ export const IgnitionSchema = z.object({
 });
 export type IgnitionData = z.infer<typeof IgnitionSchema>;
 
+/** Pasokan bahan bakar: langkah perakitan urut dari karburator ke hulu. */
+export const FuelSchema = z.object({ steps: z.array(Id).min(1) });
+export type FuelData = z.infer<typeof FuelSchema>;
+
 /** Kalimat handbook: wajib menunjuk sumber dan lokasinya (halaman/paragraf), tidak boleh dikarang. */
 const Cited = { text: z.string().min(1), source: Id, ref: z.string().min(1) };
 

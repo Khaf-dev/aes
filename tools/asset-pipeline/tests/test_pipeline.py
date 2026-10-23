@@ -174,6 +174,17 @@ def test_alternator_placeholder_siap_dipasang_seperti_part_tier2(tmp_path):
     assert bb["min"][0] == pytest.approx(-0.150, abs=1e-3)  # badan ke -x, poros ke +x
     assert bb["max"][0] == pytest.approx(0.018, abs=1e-3)
     assert meta["attachPoints"]["outputTerminal"]["position"][1] > 0.055  # terminal di atas badan (+Y)
-    assert bb["max"][2] == pytest.approx(0.062, abs=1e-3)  # telinga flange di ±Z runtime, sejajar stud pad
+    assert bb["max"][2] == pytest.approx(0.087, abs=1e-3)  # telinga flange di ±Z runtime (75 + 12 mm), di luar badan Ø110
     assert meta["source"]["kind"] == "placeholder" and meta["source"]["verified"] is False
+    assert meta["triangles"] <= 30000
+
+
+def test_karburator_placeholder_mur_tidak_tertutup_badan(tmp_path):
+    spec = load_spec(Path(__file__).resolve().parent.parent / "specs" / "placeholder" / "carburetor.json")
+    meta = export_part(spec, generate(spec), tmp_path)
+    assert meta["attachPoints"]["mountFace"]["normal"] == [1.0, 0.0, 0.0]
+    stud = spec.mm("studSpacing") / 2
+    # stud di luar leher dan badan dengan jarak lebih dari jari-jari mur di game (9 mm)
+    assert stud - spec.mm("neckSize") / 2 > 9 and stud - spec.mm("bodySize") / 2 > 5
+    assert meta["attachPoints"]["fuelInlet"]["position"][1] > spec.mm("bodySize") / 2 / 1000
     assert meta["triangles"] <= 30000

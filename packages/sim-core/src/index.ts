@@ -54,3 +54,4 @@ export {
 
 // Pengapian
 export { runUp, type IgnitionFinding, type MagResult, type MagnetoSpec, type RunUpReport } from "./ignition/run-up.ts";
+export { fuelCheck, type FuelCheck, type FuelSupplySpec } from "./fuel/fuel.ts";

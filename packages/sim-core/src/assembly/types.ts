@@ -88,4 +88,6 @@ export interface Defect {
   readonly detail: string;
   /** true bila langkahnya sudah di-sign-off padahal defect ini ada. */
   readonly signedOff: boolean;
+  /** Nomor pengencang (1..n) untuk defect torsi. */
+  readonly fastener?: number;
 }

@@ -49,6 +49,8 @@ interface GameState {
   readonly lensOverEngine: boolean;
   /** Kamera berputar otomatis 360°. */
   readonly spin: boolean;
+  /** "walk" = kamera badan engineer (WASD), "orbit" = fokus memutari benda (F) atau putar otomatis (P). */
+  readonly camMode: "walk" | "orbit";
   /** Setelan thimble kunci torsi (in-lb). */
   readonly setting: number;
   /** Mur tempat kunci torsi sedang terpasang. */
@@ -85,6 +87,7 @@ interface GameState {
   signOff(stepId: string): void;
   setLens(on: boolean): void;
   setSpin(on: boolean): void;
+  setCamMode(mode: "walk" | "orbit"): void;
   aimWrench(nut: NutRef): void;
   stepSetting(delta: number): void;
   openCloseup(nut: NutRef): void;
@@ -118,6 +121,7 @@ export const useGame = create<GameState>()((set, get) => {
     lensOn: false,
     lensOverEngine: false,
     spin: false,
+    camMode: "walk",
     setting: WRENCH_MIN,
     wrenchAt: null,
     closeup: null,
@@ -187,7 +191,8 @@ export const useGame = create<GameState>()((set, get) => {
     toggleCheck: (stepId, index) => set({ rakit: rakit.toggleCheck(get().rakit, stepId, index, checklist(stepId).length) }),
     signOff: (stepId) => set({ rakit: rakit.signOff(get().rakit, stepId, checklist(stepId).length) }),
     setLens: (lensOn) => set({ lensOn, lensOverEngine: false, hover: null }),
-    setSpin: (spin) => set({ spin }),
+    setSpin: (spin) => set(spin ? { spin, camMode: "orbit" } : { spin }),
+    setCamMode: (camMode) => set(camMode === "walk" ? { camMode, spin: false } : { camMode }),
     aimWrench: (nut) => set({ wrenchAt: nut }),
     stepSetting: (delta) => set({ setting: clampSetting(get().setting + delta) }),
 
